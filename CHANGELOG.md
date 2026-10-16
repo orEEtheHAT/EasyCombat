@@ -31,5 +31,8 @@
 - Added SO abilities, target revalidation, atomic release costs, cast cancellation, sequential charges and cooldowns.
 - Added bounded swept melee windows, sustained paid beams and area enter/stay/exit sensing with grouped life identities.
 - Added shared schedulers for active ability timers and timed delivery, plus authoring inspectors and documentation.
+- Added captured homing, physical ricochet, chained-target and returning 3D projectile profiles with bounded substeps.
+- Added optional Physics2D delivery assembly and separate EditMode/PlayMode adapter tests; shared health/status/defense contracts remain in the core.
+- Added configurable local facing for directional block and 2D body-part collider lifecycle integration.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

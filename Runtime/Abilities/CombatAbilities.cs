@@ -303,7 +303,7 @@ namespace EasyCombat
             var damage=attack.RollRandom(source,context.Origin,context.Direction,multiplier,context.OriginFor(attack)); if(!damage.IsValid) return false;
             if(impactCallback==null) impactCallback=impacts.Publish;
             if(action.DirectToTarget) { context.Target.ApplyDamage(damage.At(context.Point,context.Direction)); return true; }
-            if(attack.Delivery==DamageDelivery.Projectile) return projectilePool.Spawn(context.Origin,context.Direction,damage,transform,attack,impactCallback,areaPool)!=null;
+            if(attack.Delivery==DamageDelivery.Projectile) return projectilePool.Spawn(context.Origin,context.Direction,damage,transform,attack,impactCallback,areaPool,context.Target)!=null;
             if(attack.Delivery==DamageDelivery.Area) { area.Apply(action.AreaAtPoint ? context.Point : context.Origin,context.Direction,damage,new AreaSettings(attack.Area),transform,impactCallback); return true; }
             try { trace.Begin(attack,damage,transform,context.Direction,areaPool); trace.Advance(context.Origin,attack.Range,impactCallback,out var end); trace.CompleteHitscan(end,impactCallback); return true; }
             finally { trace.Clear(); }

@@ -19,6 +19,7 @@ namespace EasyCombat
         public event Action<CombatBodyPart> Broken { add=>brokenSignal.Add(value); remove=>brokenSignal.Remove(value); }
         public Health LocalHealth { get { if(local==null) local=GetComponent<Health>(); return local; } }
         public Health Core=>core;
+        public BodyPartDefinition Definition=>definition;
         public bool IsBroken=>broken || !LocalHealth.IsAlive;
         public MonoBehaviour HitGroup=>definition!=null && definition.GroupWithCore && core!=null ? core : this;
         public Health RulesTarget=>definition!=null && definition.RespectCoreEligibility && core!=null ? core : LocalHealth;

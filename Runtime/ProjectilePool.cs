@@ -50,7 +50,7 @@ namespace EasyCombat
         }
 
         public DamageProjectile Spawn(Vector3 origin, Vector3 direction, DamageInfo damage, Transform owner,
-            AttackDefinition attack, Action<DamageImpact> onImpact, DamageAreaPool areaPool = null)
+            AttackDefinition attack, Action<DamageImpact> onImpact, DamageAreaPool areaPool = null,Health homingTarget=null)
         {
             var template = attack != null && attack.ProjectilePrefab != null ? attack.ProjectilePrefab : prefab;
             if (shuttingDown || !isActiveAndEnabled || template == null || active.Count >= maximumActive) return null;
@@ -60,7 +60,7 @@ namespace EasyCombat
             if (projectile == null) projectile = Create(template);
             active.Add(projectile);
             if (returnCallback == null) returnCallback = Return;
-            try { projectile.Launch(origin, direction, damage, owner, attack, onImpact, returnCallback, areaPool); }
+            try { projectile.Launch(origin, direction, damage, owner, attack, onImpact, returnCallback, areaPool,homingTarget); }
             catch { Return(projectile); throw; }
             return projectile;
         }

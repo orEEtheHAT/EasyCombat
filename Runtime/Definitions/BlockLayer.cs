@@ -9,9 +9,11 @@ namespace EasyCombat
         [Range(0, 1)] public float Chance = 1;
         [Range(0, 1)] public float Reduction = 1;
         [Range(0, 360)] public float Arc = 120;
+        [Tooltip("Local facing direction. Forward for 3D, usually Right or Up for XY games.")] public Vector3 LocalFacing=Vector3.forward;
         public ResourceCost[] Costs=System.Array.Empty<ResourceCost>();
         public override bool IsValid => base.IsValid && CombatMath.Finite(Chance) && Chance >= 0 && Chance <= 1
-            && CombatMath.Finite(Reduction) && Reduction >= 0 && Reduction <= 1 && CombatMath.Finite(Arc) && Arc >= 0 && Arc <= 360 && ValidCosts;
+            && CombatMath.Finite(Reduction) && Reduction >= 0 && Reduction <= 1 && CombatMath.Finite(Arc) && Arc >= 0 && Arc <= 360 && ValidCosts
+            && CombatMath.Finite(LocalFacing) && CombatMath.Finite(LocalFacing.sqrMagnitude) && LocalFacing.sqrMagnitude>.000001f;
         private bool ValidCosts
         {
             get
@@ -28,7 +30,7 @@ namespace EasyCombat
             {
                 var direction = context.Damage.Direction;
                 if (!CombatMath.Finite(direction) || direction.sqrMagnitude < .000001f
-                    || Vector3.Dot(context.Target.transform.forward, -direction.normalized) < Mathf.Cos(Arc * .5f * Mathf.Deg2Rad)) return incoming;
+                    || Vector3.Dot(context.Target.transform.TransformDirection(LocalFacing.normalized), -direction.normalized) < Mathf.Cos(Arc * .5f * Mathf.Deg2Rad)) return incoming;
             }
             return Chance >= 1 || CombatRandom.Value < Chance ? ScaleMatching(incoming, 1 - Reduction) : incoming;
         }

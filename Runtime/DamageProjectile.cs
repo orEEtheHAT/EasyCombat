@@ -6,7 +6,7 @@ namespace EasyCombat
     [DisallowMultipleComponent]
     [AddComponentMenu("EasyCombat/Damage Projectile")]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed class DamageProjectile : MonoBehaviour
+    public sealed partial class DamageProjectile : MonoBehaviour
     {
         private readonly AttackTrace trace = new AttackTrace();
         private float speed, remainingRange, remainingLifetime;
@@ -15,10 +15,12 @@ namespace EasyCombat
         private bool launched, simulating;
         public bool IsFlying => launched && trace.Active;
         public float Radius => trace.Radius;
+        public Vector3 Direction=>trace.Direction;
+        public bool IsReturning=>usesGuidance && guidance.Returning;
 
         // No Rigidbody or collision callbacks: each step sweeps the full spherical volume.
         public void Launch(Vector3 origin, Vector3 shotDirection, DamageInfo request, Transform sourceRoot,
-            AttackDefinition attack, Action<DamageImpact> impact = null, Action<DamageProjectile> returnToPool = null, DamageAreaPool areaPool = null)
+            AttackDefinition attack, Action<DamageImpact> impact = null, Action<DamageProjectile> returnToPool = null, DamageAreaPool areaPool = null,Health homingTarget=null)
         {
             if (attack == null || !attack.IsValid || !CombatMath.Finite(origin)
                 || !CombatMath.Finite(shotDirection) || shotDirection.sqrMagnitude < .000001f || !request.IsValid)
@@ -27,6 +29,7 @@ namespace EasyCombat
             if (attack.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled))
                 throw new ArgumentException("This projectile requires an active DamageAreaPool.");
             trace.Begin(attack, request, sourceRoot, shotDirection, areaPool);
+            ConfigureGuidance(attack.ProjectileMotion,sourceRoot,homingTarget);
             speed = attack.ProjectileSpeed;
             remainingRange = attack.Range;
             remainingLifetime = attack.ProjectileLifetime;
@@ -41,10 +44,12 @@ namespace EasyCombat
 
         public void Simulate(float deltaTime)
         {
-            if (!IsFlying || simulating || !CombatMath.Positive(deltaTime)) return;
+            if (!IsFlying || simulating || !CombatMath.Finite(deltaTime) || deltaTime<0 || deltaTime==0 && (!usesGuidance || guidance.PendingTime<=0)) return;
             simulating = true;
+            CombatReactionQueue.Enter();
             try
             {
+                if(usesGuidance) { SimulateGuided(deltaTime); return; }
                 var step = Mathf.Min(remainingRange, speed * Mathf.Min(deltaTime, remainingLifetime));
                 trace.Advance(transform.position, step, onImpact, out var end, transform);
                 transform.position = end;
@@ -56,13 +61,15 @@ namespace EasyCombat
             finally
             {
                 simulating = false;
-                if (!trace.Active) Finish();
+                try { if (!trace.Active) Finish(); }
+                finally { CombatReactionQueue.Exit(); }
             }
         }
 
         public void Despawn()
         {
             if (!launched) return;
+            if(guidance!=null) guidance.Cancelled=true;
             trace.Stop();
             // Do not return to a pool while callbacks still use this shot's trace.
             if (!simulating) Finish();
@@ -76,6 +83,7 @@ namespace EasyCombat
             release = null;
             onImpact = null;
             trace.Clear();
+            guidance?.Clear(); usesGuidance=false;
             if (returnToPool != null) returnToPool(this);
             else Destroy(gameObject);
         }

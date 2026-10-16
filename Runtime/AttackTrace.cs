@@ -22,6 +22,13 @@ namespace EasyCombat
         private int maximumTargets, contactCount;
         public bool Active { get; private set; }
         public float Radius { get; private set; }
+        internal Vector3 Direction=>direction;
+        internal DamageInfo Payload=>damage;
+        internal bool TargetBudgetExhausted=>maximumTargets>0 && visited.Count>=maximumTargets;
+        internal bool HasVisited(MonoBehaviour receiver)=>visited.Contains(new CombatHitKey(receiver));
+        internal void SetDirection(Vector3 value)=>direction=value.normalized;
+        internal void ClearVisited()=>visited.Clear();
+        internal void Continue(Vector3 value,float multiplier=1) { direction=value.normalized; damage=damage.Scale(multiplier); Active=damage.IsValid; }
 
         public void Begin(AttackDefinition attack, DamageInfo request, Transform source, Vector3 forward, DamageAreaPool fieldPool = null)
         {
@@ -42,7 +49,7 @@ namespace EasyCombat
         }
 
         /// <summary>Collect before callbacks, resolve in travel order, and remember final receivers across steps.</summary>
-        public void Advance(Vector3 origin, float distance, Action<DamageImpact> onImpact, out Vector3 end, Transform movingObject = null)
+        public void Advance(Vector3 origin, float distance, Action<DamageImpact> onImpact, out Vector3 end, Transform movingObject = null,Action<DamageContact> onContact=null)
         {
             end = origin + direction * distance;
             if (!Active) return;
@@ -71,6 +78,7 @@ namespace EasyCombat
                     }
                     if (spawnedArea.Enabled && areaPool != null && (stop || spawnedArea.Trigger == AreaSpawnTrigger.EveryContact))
                         areaPool.Spawn(spawnedArea, contact.Point, contact.Normal, direction, owner);
+                    onContact?.Invoke(contact);
                     // External cancellation from an impact callback also ends at this contact.
                     if (!Active) end = origin + direction * contact.Distance;
                 }

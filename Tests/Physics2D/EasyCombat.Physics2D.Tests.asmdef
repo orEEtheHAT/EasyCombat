@@ -1,0 +1,10 @@
+{
+  "name":"EasyCombat.Physics2D.Tests",
+  "rootNamespace":"EasyCombat.Tests",
+  "references":["EasyCombat.Runtime","EasyCombat.Physics2D"],
+  "includePlatforms":["Editor"],
+  "optionalUnityReferences":["TestAssemblies"],
+  "autoReferenced":false,
+  "defineConstraints":["UNITY_INCLUDE_TESTS","EASYCOMBAT_PHYSICS2D"],
+  "versionDefines":[{"name":"com.unity.modules.physics2d","expression":"1.0.0","define":"EASYCOMBAT_PHYSICS2D"}]
+}

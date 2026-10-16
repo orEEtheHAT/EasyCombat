@@ -1,0 +1,8 @@
+{
+  "name": "EasyCombat.Physics2D",
+  "rootNamespace": "EasyCombat",
+  "references": ["EasyCombat.Runtime"],
+  "autoReferenced": true,
+  "defineConstraints": ["EASYCOMBAT_PHYSICS2D"],
+  "versionDefines": [{"name":"com.unity.modules.physics2d","expression":"1.0.0","define":"EASYCOMBAT_PHYSICS2D"}]
+}

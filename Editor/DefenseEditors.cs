@@ -107,6 +107,7 @@ namespace EasyCombat.Editor
             else if (target is BlockLayer)
             {
                 Percent("Chance", "Шанс блока (%)"); Percent("Reduction", "Поглощение блоком (%)"); Field("Arc", "Сектор спереди (°)");
+                Field("LocalFacing","Локальное направление блока (3D: Z, 2D: X/Y)");
                 Field("Costs","Цена успешного блока");
                 EditorGUILayout.HelpBox("Смотрит по transform.forward цели и направлению входящего урона. Один бросок на пакет. 360° — всесторонний блок; при меньшем секторе урон без направления не блокируется. Для активного блока настрой слой изначально выключенным и включай на время удержания кнопки.", MessageType.Info);
             }

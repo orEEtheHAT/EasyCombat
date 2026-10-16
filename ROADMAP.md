@@ -55,7 +55,7 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Ability execution, targeting, costs, cooldowns, charges and cancellation.
 - [x] Melee windows, swept contacts and repeat-hit policy.
 - [x] Sustained beams, area enter/stay/exit rules.
-- [ ] Optional homing, ricochet/return/chain delivery and Physics2D adapter.
+- [x] Optional 3D homing, ricochet/return/chain delivery and optional Physics2D hitscan/projectile/AOE adapter (scope in ProjectileMotion2D.ru.md).
 
 ## 11. Save/restore
 - [ ] Stable definition catalog and actor identity mapping.

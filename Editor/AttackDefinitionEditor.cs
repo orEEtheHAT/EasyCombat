@@ -75,6 +75,7 @@ namespace EasyCombat.Editor
                 Field("ProjectilePrefab", "Префаб");
                 Field("ProjectileSpeed", "Скорость (м/с)");
                 Field("ProjectileLifetime", "Время жизни (с)");
+                Field("ProjectileMotion", "Наведение / рикошет / возврат");
             }
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serializedObject.FindProperty("OnHitStatuses"), new GUIContent("Статусы при попадании"), true);

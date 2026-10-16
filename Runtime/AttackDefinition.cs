@@ -53,6 +53,7 @@ namespace EasyCombat
         [Min(0f)] public float ProjectileRadius = 0.12f;
         [Tooltip("Optional projectile prefab owned by this weapon. Falls back to the pool's prefab.")]
         public DamageProjectile ProjectilePrefab;
+        public ProjectileMotionDefinition ProjectileMotion;
         public float HitRadius => Delivery == DamageDelivery.Projectile ? ProjectileRadius : HitscanRadius;
         [Header("Optional status stat keys")]
         public CombatStatDefinition DamageModifierStat;
@@ -149,6 +150,6 @@ namespace EasyCombat
                 && MaximumTargets >= 0))
             && (Delivery == DamageDelivery.Hitscan || (Delivery == DamageDelivery.Area && Area != null) || (Delivery == DamageDelivery.Projectile
                 && CombatMath.Positive(ProjectileSpeed) && CombatMath.Positive(ProjectileLifetime)
-                && CombatMath.Finite(ProjectileRadius) && ProjectileRadius >= 0f));
+                && CombatMath.Finite(ProjectileRadius) && ProjectileRadius >= 0f && (ProjectileMotion==null || ProjectileMotion.IsValid)));
     }
 }
