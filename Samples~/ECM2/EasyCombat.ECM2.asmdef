@@ -1,0 +1,8 @@
+{
+  "name": "EasyCombat.ECM2",
+  "references": [
+    "EasyCombat.Runtime",
+    "ECM2"
+  ],
+  "autoReferenced": true
+}

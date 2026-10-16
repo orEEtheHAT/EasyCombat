@@ -1,0 +1,14 @@
+{
+  "name": "EasyCombat.EditModeTests",
+  "rootNamespace": "EasyCombat.Tests",
+  "references": [
+    "EasyCombat.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}

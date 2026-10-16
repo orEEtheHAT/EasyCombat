@@ -1,0 +1,43 @@
+{
+  "name": "com.oreethehat.easy-combat",
+  "displayName": "EasyCombat",
+  "version": "0.1.0-preview.1",
+  "unity": "6000.3",
+  "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
+  "author": {
+    "name": "orEEtheHAT",
+    "url": "https://github.com/orEEtheHAT"
+  },
+  "license": "MIT",
+  "keywords": [
+    "combat",
+    "health",
+    "stats",
+    "abilities",
+    "scriptableobjects"
+  ],
+  "samples": [
+    {
+      "displayName": "Basic Arena",
+      "description": "Standalone SO-driven combat playground. No third-party dependencies.",
+      "path": "Samples~/BasicArena"
+    },
+    {
+      "displayName": "ECM2 Adapter",
+      "description": "Optional adapter. Requires Easy Character Movement 2. Includes only EasyCombat integration code.",
+      "path": "Samples~/ECM2"
+    },
+    {
+      "displayName": "Easy Feedbacks Adapter",
+      "description": "Optional adapter. Requires EasyFeedbacks. Includes only EasyCombat integration code.",
+      "path": "Samples~/EasyFeedbacks"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orEEtheHAT/EasyCombat.git"
+  },
+  "documentationUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/Documentation~/CombatGuide.ru.md",
+  "changelogUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/LICENSE.md"
+}

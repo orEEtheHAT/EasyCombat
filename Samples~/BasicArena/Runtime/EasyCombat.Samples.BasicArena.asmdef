@@ -1,0 +1,6 @@
+{
+  "name": "EasyCombat.Samples.BasicArena",
+  "rootNamespace": "EasyCombat.Samples",
+  "references": ["EasyCombat.Runtime"],
+  "autoReferenced": true
+}

@@ -1,0 +1,9 @@
+{
+  "name": "EasyCombat.EasyFeedbacks",
+  "rootNamespace": "EasyCombat.Integrations",
+  "references": [
+    "EasyCombat.Runtime",
+    "EasyFeedbacks.Runtime"
+  ],
+  "autoReferenced": true
+}

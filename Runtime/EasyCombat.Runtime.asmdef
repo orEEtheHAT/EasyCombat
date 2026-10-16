@@ -1,0 +1,6 @@
+{
+  "name": "EasyCombat.Runtime",
+  "rootNamespace": "EasyCombat",
+  "references": [],
+  "autoReferenced": true
+}

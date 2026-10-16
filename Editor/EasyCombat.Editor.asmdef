@@ -1,0 +1,11 @@
+{
+  "name": "EasyCombat.Editor",
+  "rootNamespace": "EasyCombat.Editor",
+  "references": [
+    "EasyCombat.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

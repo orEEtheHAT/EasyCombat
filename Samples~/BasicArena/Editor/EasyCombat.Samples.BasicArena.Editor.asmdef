@@ -1,0 +1,6 @@
+{
+  "name": "EasyCombat.Samples.BasicArena.Editor",
+  "references": ["EasyCombat.Runtime", "EasyCombat.Samples.BasicArena"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}
