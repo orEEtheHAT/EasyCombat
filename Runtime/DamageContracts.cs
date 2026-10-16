@@ -48,7 +48,7 @@ namespace EasyCombat
             IsPeriodic = isPeriodic;
             OnHitStatuses = onHitStatuses;
             var parts = new DamageAmounts(); parts.Add(type, amount); Parts = parts;
-            Origin = origin.CastId == 0 && source != null ? DamageOrigin.Capture(source) : origin;
+            Origin = origin.CastId == 0 ? DamageOrigin.Capture(source) : origin;
             StatusPolicy = statusPolicy;
         }
 
@@ -59,14 +59,14 @@ namespace EasyCombat
             Formula = default;
             Parts = parts; Amount = parts.Total; Type = parts.Count == 1 ? parts[0].Type : null;
             Source = source; Point = point; Direction = direction; IsCritical = isCritical; IsPeriodic = isPeriodic;
-            OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 && source != null ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
+            OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
         }
         public DamageInfo(DamageFormulaSnapshot formula, GameObject source = null, Vector3 point = default, Vector3 direction = default,
             bool isPeriodic = false, StatusApplication[] onHitStatuses = null, DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage)
         {
             Formula = formula; Parts = default; Amount = 0; Type = null;
             Source = source; Point = point; Direction = direction; IsCritical = formula.IsCritical; IsPeriodic = isPeriodic;
-            OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 && source != null ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
+            OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
         }
         public bool TryResolve(float currentHealth, float maximumHealth, out DamageInfo resolved)
         {

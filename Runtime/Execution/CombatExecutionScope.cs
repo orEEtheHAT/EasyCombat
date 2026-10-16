@@ -42,7 +42,15 @@ namespace EasyCombat
     }
     public static class CombatClock
     {
-        public static double Now => CombatExecutionScope.Current?.Clock?.Now ?? Time.timeAsDouble;
+        public static double Now
+        {
+            get
+            {
+                var value = CombatExecutionScope.Current?.Clock?.Now ?? Time.timeAsDouble;
+                if (double.IsNaN(value) || double.IsInfinity(value)) throw new InvalidOperationException("Combat clock must return finite time.");
+                return value;
+            }
+        }
     }
     /// <summary>Main-thread simulation scope. Dispose in reverse order; does not mutate UnityEngine.Random.state.</summary>
     public sealed class CombatExecutionScope : IDisposable

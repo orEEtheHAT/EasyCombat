@@ -39,7 +39,7 @@ namespace EasyCombat
             if (!CombatMath.Positive(multiplier)) return;
             // The journal names the field's own attack, preserving actor, team and the triggering shot's CastId.
             var origin = parentOrigin.CastId != 0 ? new DamageOrigin(parentOrigin.Actor, recipe.Attack,
-                parentOrigin.CastId, hasTeam: parentOrigin.HasTeam, team: parentOrigin.Team) : default;
+                parentOrigin.CastId, hasTeam: parentOrigin.HasTeam, team: parentOrigin.Team, action:parentOrigin.Action.Child(CombatOriginKind.Area)) : default;
             Payload = recipe.Attack.RollRandom(source, default, Vector3.forward, multiplier, origin);
             Area = new AreaSettings(recipe.Attack.Area);
             Duration = recipe.Duration; Interval = recipe.Interval; ApplyImmediately = recipe.ApplyImmediately;

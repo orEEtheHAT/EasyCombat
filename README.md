@@ -28,6 +28,7 @@ To run the package tests, install Unity Test Framework and add `com.oreethehat.e
 - Bounded resources with atomic multi-resource costs, regeneration and stat-driven capacities.
 - Healing formulas, criticals, restrictions, explicit overheal and lifesteal calculation bases.
 - Injectable RNG/clock for reproducible rolls, cooldowns and journal timestamps.
+- SO reactions with conditions, tags, cooldowns, deferred execution and bounded chains.
 
 Definitions are shared configuration. Health, resources, timers, shield charges and status instances are owned by actors. Treat definitions as immutable during combat.
 
@@ -40,6 +41,7 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Migration from the Games Factory prototype](Documentation~/Migration.md)
 - [Stats and modifiers / Характеристики](Documentation~/Stats.ru.md)
 - [Resources and healing / Ресурсы и лечение](Documentation~/ResourcesHealing.ru.md)
+- [Reactions / Реакции](Documentation~/Reactions.ru.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries

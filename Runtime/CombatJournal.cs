@@ -25,20 +25,25 @@ namespace EasyCombat
         public readonly StatusDefinition Status;
         public readonly string AttackName, StatusName;
         public readonly long CastId;
+        public readonly CombatActionOrigin Action;
         public readonly bool HasTeam;
         public readonly int Team;
         public DamageOrigin(CombatActorIdentity actor, AttackDefinition attack = null, long castId = 0,
-            StatusDefinition status = null, bool hasTeam = false, int team = 0)
+            StatusDefinition status = null, bool hasTeam = false, int team = 0, CombatActionOrigin action = default)
         {
             Actor = actor; Attack = attack; Status = status; CastId = castId;
             AttackName = attack != null ? attack.Label : null; StatusName = status != null ? status.Label : null;
             HasTeam = hasTeam; Team = team;
+            Action = action.Id != 0 ? action : new CombatActionOrigin(castId,castId,0,0,
+                status != null ? CombatOriginKind.Status : attack != null ? CombatOriginKind.Attack : CombatOriginKind.Environment,
+                new CombatTagSet(attack != null ? attack.Tags : null));
         }
         private DamageOrigin(in DamageOrigin origin, StatusDefinition status)
         {
             Actor = origin.Actor; Attack = origin.Attack; AttackName = origin.AttackName;
             CastId = origin.CastId; Status = status; StatusName = status != null ? status.Label : null;
             HasTeam = origin.HasTeam; Team = origin.Team;
+            Action = origin.Action.Child(CombatOriginKind.Status);
         }
         public DamageOrigin WithStatus(StatusDefinition status) => new DamageOrigin(in this, status);
         public static DamageOrigin Capture(GameObject source, AttackDefinition attack = null)
@@ -55,8 +60,9 @@ namespace EasyCombat
         public readonly double Time;
         public readonly CombatActorIdentity Target;
         public readonly DamageResult Result;
-        public CombatRecord(long sequence, double time, CombatActorIdentity target, DamageResult result)
-        { Sequence = sequence; Time = time; Target = target; Result = result; }
+        public readonly Health TargetHealth;
+        public CombatRecord(long sequence, double time, CombatActorIdentity target, DamageResult result, Health targetHealth = null)
+        { Sequence = sequence; Time = time; Target = target; Result = result; TargetHealth = targetHealth; }
     }
 
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
@@ -79,11 +85,11 @@ namespace EasyCombat
         }
         // IDs keep increasing with disabled domain reload so cached identities cannot collide.
         internal static long NextId() => ++sequence;
-        internal static void Publish(CombatActorIdentity target, DamageResult result)
+        internal static void Publish(CombatActorIdentity target, DamageResult result, Health targetHealth = null)
         {
             var snapshot = listeners;
             if (snapshot.Length == 0) return;
-            var record = new CombatRecord(NextId(), CombatClock.Now, target, result);
+            var record = new CombatRecord(NextId(), CombatClock.Now, target, result,targetHealth);
             for (var i = 0; i < snapshot.Length; i++)
                 try { snapshot[i](record); }
                 catch (Exception exception) { Debug.LogException(exception); } // Observability must not cancel death/gameplay events.

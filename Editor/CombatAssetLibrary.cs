@@ -21,16 +21,16 @@ namespace EasyCombat.Editor
         public static string DemoRoot => AssetDatabase.IsValidFolder("Assets/GamesFactory/Combat/Demo") ? "Assets/GamesFactory/Combat/Demo" : "Assets/EasyCombat";
         public static string DefinitionsRoot => DemoRoot + "/Definitions";
         public static readonly Type[] Types = { typeof(AttackDefinition), typeof(DamageTypeDefinition), typeof(HealthDefinition),
-            typeof(ResistanceProfile), typeof(StatusDefinition), typeof(StatusTickEffect), typeof(CombatStatDefinition), typeof(AreaDefinition), typeof(AreaPulseDefinition), typeof(CombatStatsDefinition), typeof(AreaSpawnDefinition), typeof(DamageFormulaDefinition), typeof(AreaOverlapGroupDefinition), typeof(HitRulesDefinition), typeof(DefenseProfile), typeof(DefenseLayerDefinition), typeof(StatModifierDefinition), typeof(ResourceDefinition), typeof(ResourceProfile), typeof(HealingDefinition) };
-        public static readonly string[] Titles = { "Оружие", "Типы урона", "Здоровье", "Сопротивления", "Статусы", "Действия тика", "Характеристики", "Области AOE", "Импульсы областей", "Профили характеристик", "Создание областей", "Формулы урона", "Пересечения областей", "Правила попадания", "Профили защиты", "Слои защиты", "Наборы модификаторов", "Ресурсы", "Профили ресурсов", "Лечение" };
-        public static readonly string[] Folders = { "Weapons", "DamageTypes", "HealthProfiles", "ResistanceProfiles", "Statuses", "StatusEffects", "Stats", "Areas", "AreaPulses", "StatProfiles", "AreaSpawns", "DamageFormulas", "AreaOverlapGroups", "HitRules", "DefenseProfiles", "DefenseLayers", "StatModifiers", "Resources", "ResourceProfiles", "Healing" };
-        public static readonly string[] Codes = { "WP", "DM", "HP", "RS", "FX", "TK", "ST", "AO", "AP", "SP", "AS", "DF", "OG", "HR", "DP", "DL", "SM", "RE", "RP", "HE" };
+            typeof(ResistanceProfile), typeof(StatusDefinition), typeof(StatusTickEffect), typeof(CombatStatDefinition), typeof(AreaDefinition), typeof(AreaPulseDefinition), typeof(CombatStatsDefinition), typeof(AreaSpawnDefinition), typeof(DamageFormulaDefinition), typeof(AreaOverlapGroupDefinition), typeof(HitRulesDefinition), typeof(DefenseProfile), typeof(DefenseLayerDefinition), typeof(StatModifierDefinition), typeof(ResourceDefinition), typeof(ResourceProfile), typeof(HealingDefinition), typeof(CombatTagDefinition), typeof(ReactionDefinition), typeof(CombatReactionAction) };
+        public static readonly string[] Titles = { "Оружие", "Типы урона", "Здоровье", "Сопротивления", "Статусы", "Действия тика", "Характеристики", "Области AOE", "Импульсы областей", "Профили характеристик", "Создание областей", "Формулы урона", "Пересечения областей", "Правила попадания", "Профили защиты", "Слои защиты", "Наборы модификаторов", "Ресурсы", "Профили ресурсов", "Лечение", "Теги", "Реакции", "Действия реакций" };
+        public static readonly string[] Folders = { "Weapons", "DamageTypes", "HealthProfiles", "ResistanceProfiles", "Statuses", "StatusEffects", "Stats", "Areas", "AreaPulses", "StatProfiles", "AreaSpawns", "DamageFormulas", "AreaOverlapGroups", "HitRules", "DefenseProfiles", "DefenseLayers", "StatModifiers", "Resources", "ResourceProfiles", "Healing", "Tags", "Reactions", "ReactionActions" };
+        public static readonly string[] Codes = { "WP", "DM", "HP", "RS", "FX", "TK", "ST", "AO", "AP", "SP", "AS", "DF", "OG", "HR", "DP", "DL", "SM", "RE", "RP", "HE", "TG", "RX", "RA" };
         public static readonly Color[] Colors = {
             new Color(.30f,.87f,.78f), new Color(1f,.65f,.35f), new Color(.44f,.77f,1f),
             new Color(.71f,.65f,1f), new Color(.92f,.58f,.84f), new Color(.94f,.79f,.38f), new Color(.62f,.82f,.59f),
             new Color(1f,.55f,.35f), new Color(.50f,.79f,1f), new Color(.62f,.82f,.59f), new Color(1f,.70f,.30f), new Color(1f,.65f,.35f), new Color(.50f,.79f,1f),
             new Color(.71f,.65f,1f), new Color(.44f,.77f,1f), new Color(.30f,.87f,.78f),
-            new Color(.62f,.82f,.59f), new Color(.4f,.7f,1f), new Color(.4f,.7f,1f), new Color(.4f,1f,.6f)
+            new Color(.62f,.82f,.59f), new Color(.4f,.7f,1f), new Color(.4f,.7f,1f), new Color(.4f,1f,.6f), new Color(.8f,.7f,.5f), new Color(.9f,.5f,.7f), new Color(.9f,.5f,.7f)
         };
 
         public static int Category(Type type)
@@ -179,6 +179,8 @@ namespace EasyCombat.Editor
                     foreach (var status in weapon.OnHitStatuses)
                         if (status.Status == null) issues.Add("В списке попадания есть пустой статус.");
             }
+            if (asset is ReactionDefinition reaction && !reaction.IsValid) issues.Add("Проверь условия реакции и 1–8 валидных действий.");
+            if (asset is CombatReactionAction action && !action.IsValid) issues.Add("Некорректное действие реакции.");
             if (asset is StatModifierDefinition modifiers && !modifiers.IsValid) issues.Add("Нужны валидные модификаторы характеристик.");
             if (asset is ResourceDefinition resource && !resource.IsValid) issues.Add("Проверь ёмкость, начальное заполнение и регенерацию.");
             if (asset is ResourceProfile resources && !resources.IsValid) issues.Add("До 32 уникальных валидных ресурсов.");

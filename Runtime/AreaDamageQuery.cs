@@ -74,13 +74,14 @@ namespace EasyCombat
         public int Apply(Vector3 center, Vector3 forward, DamageInfo damage, AreaSettings settings, Transform owner = null, Action<DamageImpact> onImpact = null)
         {
             var count = Select(center, forward, damage, settings, owner);
+            CombatReactionQueue.Enter();
             try
             {
                 var affected = 0;
                 for (var i = 0; i < count; i++) if (ApplyCandidate(candidates[i], center, forward, damage, settings, onImpact)) affected++;
                 return affected;
             }
-            finally { ClearSelection(); }
+            finally { ClearSelection(); CombatReactionQueue.Exit(); }
         }
         internal static bool ApplyCandidate(in AreaCandidate candidate, Vector3 center, Vector3 forward, DamageInfo damage,
             AreaSettings settings, Action<DamageImpact> onImpact)

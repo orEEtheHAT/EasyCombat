@@ -14,6 +14,7 @@ namespace EasyCombat
     public sealed class AttackDefinition : ScriptableObject
     {
         public string DisplayName;
+        public CombatTagDefinition[] Tags = Array.Empty<CombatTagDefinition>();
         public string Label => string.IsNullOrWhiteSpace(DisplayName) ? name : DisplayName;
         public DamageDelivery Delivery = DamageDelivery.Hitscan;
         [Header("Damage")]
@@ -135,7 +136,7 @@ namespace EasyCombat
                     && CombatMath.Finite(TotalMaximum * CriticalMultiplier);
             }
         }
-        public bool IsValid => ValidPayload && CombatMath.Positive(Range)
+        public bool IsValid => (Tags == null || Tags.Length <= CombatTagSet.Capacity) && ValidPayload && CombatMath.Positive(Range)
             && CombatMath.Finite(RoundsPerMinute) && RoundsPerMinute >= 0f
             && CombatMath.Finite(CriticalChance) && CriticalChance >= 0f && CriticalChance <= 1f
             && CombatMath.Finite(CriticalMultiplier) && CriticalMultiplier >= 1f

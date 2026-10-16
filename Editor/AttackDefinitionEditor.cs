@@ -11,6 +11,7 @@ namespace EasyCombat.Editor
         {
             serializedObject.Update();
             Field("DisplayName", "Название");
+            Field("Tags", "Теги атаки (до 8)");
             Field("Delivery", "Способ попадания");
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Урон", EditorStyles.boldLabel);

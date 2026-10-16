@@ -11,9 +11,9 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [ ] Public repository, versioned release and package validation automation.
 
 ## 1. Hit context and execution contracts
-- [ ] Tags, root/parent action identity and origin classification.
+- [x] Tags, root/parent action identity and origin classification.
 - [x] Controlled RNG and explicit clock for rolls, cooldowns and journal; timers also expose manual advance APIs.
-- [ ] Deferred reactions, bounded chains and observer isolation.
+- [x] Deferred reactions, bounded chains and Health/journal observer isolation.
 
 ## 2. Stats and damage modifiers
 - [x] Owned modifier handles; flat/additive/multiplicative operations and removal.
@@ -21,9 +21,9 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [ ] Penetration, type conversion and explicit defense bypass policies.
 
 ## 3. Reaction construction
-- [ ] Event → conditions → chance → target selection → actions through SOs.
-- [ ] Cooldowns per actor/target/action, proc limits and chain guards.
-- [ ] Lifesteal, reflection, counterattack, kill explosions and resource restoration examples.
+- [x] Event → conditions → chance → target selection → actions through SOs.
+- [x] Cooldowns per actor/target/action, proc limits and chain guards.
+- [x] Lifesteal, reflection, counterattack, kill explosions and resource restoration actions; examples documented and covered by tests.
 
 ## 4. Resources and healing
 - [x] Generic bounded resources and transactional spend/restore.

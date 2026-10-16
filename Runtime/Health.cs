@@ -97,8 +97,9 @@ namespace EasyCombat
             // Do not recursively publish rejections to a journal callback which caused the recursion.
             if (applyingDamage) return DamageResult.Rejected(damage, DamageRejection.Reentrant);
             applyingDamage = true;
+            CombatReactionQueue.Enter();
             try { return ApplyDamageCore(damage); }
-            finally { applyingDamage = false; }
+            finally { applyingDamage = false; CombatReactionQueue.Exit(); }
         }
         private DamageResult ApplyDamageCore(DamageInfo damage)
         {
@@ -190,7 +191,7 @@ namespace EasyCombat
                 : damage.Amount == 0 && appliedStatuses == 0 ? DamageRejection.NoEffect : DamageRejection.None;
             var result = new DamageResult(damage, applied, killed, rejection, breakdown, effectiveAmount, appliedStatuses,
                 healthDamage, shieldAbsorbed, armorPrevented, resistanceDelta, defenses);
-            CombatEvents.Publish(identity, result);
+            CombatEvents.Publish(identity, result, this);
             if (shieldAbsorbed > 0) defenseChangedSignal.Publish(this);
             if (applied > 0)
             {
@@ -204,7 +205,7 @@ namespace EasyCombat
         private DamageResult Reject(DamageInfo damage, DamageRejection reason)
         {
             var result = DamageResult.Rejected(damage, reason);
-            CombatEvents.Publish(identity, result);
+            CombatEvents.Publish(identity, result, this);
             return result;
         }
         public bool IsImmuneToStatus(StatusDefinition status)

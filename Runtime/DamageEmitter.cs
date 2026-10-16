@@ -41,8 +41,9 @@ namespace EasyCombat
             // A callback may request another shot with zero cooldown. Keep the current trace atomic.
             if (firing) return false;
             firing = true;
+            CombatReactionQueue.Enter();
             try { return Fire(origin, direction); }
-            finally { trace.Clear(); firing = false; }
+            finally { trace.Clear(); firing = false; CombatReactionQueue.Exit(); }
         }
 
         private bool Fire(Vector3 origin, Vector3 direction)
