@@ -81,7 +81,7 @@ namespace EasyCombat
                 int count;
                 while (true)
                 {
-                    count = Physics.RaycastNonAlloc(start, Vector3.down, groundHits, settings.ProbeHeight + settings.GroundDistance,
+                    count = CombatPhysics.Scene.Raycast(start, Vector3.down, groundHits, settings.ProbeHeight + settings.GroundDistance,
                         settings.GroundMask, QueryTriggerInteraction.Ignore);
                     if (count < groundHits.Length) break;
                     Array.Resize(ref groundHits, groundHits.Length * 2);

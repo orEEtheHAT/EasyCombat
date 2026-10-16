@@ -25,6 +25,19 @@ namespace EasyCombat
         private StatusRemovalReason clearReason = StatusRemovalReason.Cleared;
         private CombatRestriction restrictions;
         public CombatRestriction Restrictions { get { RebuildModifiersIfNeeded(); return restrictions; } }
+        public int OverdueTickRecords
+        {
+            get
+            {
+                var count=0;
+                foreach(var entry in entries)
+                {
+                    if(entry.IndependentStacks==null) { if(entry.NextTick<=Math.Min(clock,entry.ExpiresAt)+TickEpsilon) count++; }
+                    else foreach(var stack in entry.IndependentStacks) if(stack.NextTick<=Math.Min(clock,stack.ExpiresAt)+TickEpsilon) count++;
+                }
+                return count;
+            }
+        }
         /// <summary>Remove matching groups, with an explicit budget. Null matches all statuses.</summary>
         public int Dispel(CombatTagDefinition tag = null,int maximumGroups = 32)
         {

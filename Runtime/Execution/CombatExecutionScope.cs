@@ -58,10 +58,16 @@ namespace EasyCombat
         internal static CombatExecutionScope Current { get; private set; }
         internal readonly ICombatRandom Random;
         internal readonly ICombatClock Clock;
+        internal readonly bool IsolateGlobalEvents;
+        internal readonly PhysicsScene? PhysicsWorld;
         private readonly CombatExecutionScope parent;
         private bool disposed;
-        public CombatExecutionScope(ICombatRandom random = null, ICombatClock clock = null)
-        { parent = Current; Random = random ?? parent?.Random; Clock = clock ?? parent?.Clock; Current = this; }
+        public CombatExecutionScope(ICombatRandom random = null, ICombatClock clock = null,bool isolateGlobalEvents=false,PhysicsScene? physicsScene=null)
+        {
+            if(physicsScene.HasValue && !physicsScene.Value.IsValid()) throw new ArgumentException("Physics scene must be valid.",nameof(physicsScene));
+            parent = Current; Random = random ?? parent?.Random; Clock = clock ?? parent?.Clock;
+            IsolateGlobalEvents=isolateGlobalEvents || (parent?.IsolateGlobalEvents ?? false); PhysicsWorld=physicsScene ?? parent?.PhysicsWorld; Current = this;
+        }
         public void Dispose()
         {
             if (disposed) return;
@@ -69,4 +75,6 @@ namespace EasyCombat
             Current = parent; disposed = true;
         }
     }
+    internal static class CombatPhysics
+    { internal static PhysicsScene Scene=>CombatExecutionScope.Current?.PhysicsWorld ?? Physics.defaultPhysicsScene; }
 }

@@ -24,7 +24,7 @@ namespace EasyCombat
             {
                 while (true)
                 {
-                    overlapCount = Physics.OverlapSphereNonAlloc(origin, Mathf.Max(radius, .001f), overlaps, mask, triggers);
+                    overlapCount = CombatPhysics.Scene.OverlapSphere(origin, Mathf.Max(radius, .001f), overlaps, mask, triggers);
                     if (overlapCount < overlaps.Length) break;
                     Array.Resize(ref overlaps, overlaps.Length * 2);
                 }
@@ -40,8 +40,8 @@ namespace EasyCombat
                     while (true)
                     {
                         count = radius > 0
-                            ? Physics.SphereCastNonAlloc(origin, radius, direction, hits, distance, mask, triggers)
-                            : Physics.RaycastNonAlloc(origin, direction, hits, distance, mask, triggers);
+                            ? CombatPhysics.Scene.SphereCast(origin, radius, direction, hits, distance, mask, triggers)
+                            : CombatPhysics.Scene.Raycast(origin, direction, hits, distance, mask, triggers);
                         if (count < hits.Length) break;
                         Array.Resize(ref hits, hits.Length * 2);
                     }
@@ -76,8 +76,8 @@ namespace EasyCombat
             while (true)
             {
                 count = radius > 0f
-                    ? Physics.SphereCastNonAlloc(origin, radius, direction, hits, distance, mask, triggers)
-                    : Physics.RaycastNonAlloc(origin, direction, hits, distance, mask, triggers);
+                    ? CombatPhysics.Scene.SphereCast(origin, radius, direction, hits, distance, mask, triggers)
+                    : CombatPhysics.Scene.Raycast(origin, direction, hits, distance, mask, triggers);
                 if (count < hits.Length) break;
                 Array.Resize(ref hits, hits.Length * 2);
             }
@@ -100,7 +100,7 @@ namespace EasyCombat
             int count;
             while (true)
             {
-                count = Physics.OverlapSphereNonAlloc(position, Mathf.Max(radius, 0.001f), overlaps, mask, triggers);
+                count = CombatPhysics.Scene.OverlapSphere(position, Mathf.Max(radius, 0.001f), overlaps, mask, triggers);
                 if (count < overlaps.Length) break;
                 Array.Resize(ref overlaps, overlaps.Length * 2);
             }

@@ -38,5 +38,8 @@
 - Preserved captured status formulas/strength, per-stack timers, shields, resources, modifiers, ability windups/charges and reaction/attribution state across restore.
 - Added full prevalidation, coherent life/action remapping and notification-safe restore; transient deliveries end without zone exit damage.
 - Guarded live status/formula sources against reuse of the original GameObject for a new combat life.
+- Added isolated seeded battle scenarios, HP/shield graphs and direct-packet calculation breakdowns.
+- Added eight linked recipe templates, bounded dependency/cycle diagnostics, runtime state explanations and Studio tool shortcuts.
+- Added scoped 3D physics queries and global-event isolation for safe editor simulations.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

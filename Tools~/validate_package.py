@@ -23,6 +23,15 @@ for path in ROOT.rglob('*.asmdef'):
     assemblies[data['name']] = data
 check(assemblies['EasyCombat.Runtime']['references'] == [], 'Core runtime acquired an assembly dependency')
 check(assemblies['EasyCombat.Editor']['references'] == ['EasyCombat.Runtime'], 'Core editor acquired an external dependency')
+library_source = (ROOT/'Editor/CombatAssetLibrary.cs').read_text(encoding='utf-8-sig')
+category_sizes = {}
+for field in ('Types', 'Titles', 'Folders', 'Codes', 'Colors'):
+    match = re.search(r'\b' + field + r'\s*=\s*\{(.*?)\};', library_source, re.S)
+    check(match is not None, 'Missing Studio category array: ' + field)
+    if match:
+        pattern = r'typeof\s*\(' if field == 'Types' else r'new\s+Color\s*\(' if field == 'Colors' else r'"(?:\\.|[^"\\])*"'
+        category_sizes[field] = len(re.findall(pattern, match.group(1)))
+check(len(set(category_sizes.values())) == 1, 'Studio category arrays differ: ' + str(category_sizes))
 for path in (ROOT/'Runtime').rglob('*.cs'):
     check(not re.search(r'^\s*using\s+(UnityEditor|ECM2|EasyFeedbacks|PrimeTween|UnityEngine.InputSystem)\b', path.read_text(encoding='utf-8-sig'), re.M),
           'Forbidden runtime dependency: ' + str(path.relative_to(ROOT)))

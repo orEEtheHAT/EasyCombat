@@ -63,8 +63,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Prevalidated restore without rewards, new random rolls or hit side effects; transient delivery is cancelled (actor-state scope documented in Saving.ru.md).
 
 ## 12. Authoring and diagnostics
-- [ ] Battle calculator and scenario simulation.
-- [ ] Templates, dependency/cycle validation and runtime explanations.
+- [x] Battle calculator and bounded seeded scenario simulation in an isolated preview PhysicsScene.
+- [x] Eight recipe templates, dependency/cycle diagnostics and read-only runtime explanations.
 
 ## 13. Presentation
 - [ ] Structured presentation events and Easy Feedbacks bridge.

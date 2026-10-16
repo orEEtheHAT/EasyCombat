@@ -40,7 +40,7 @@ namespace EasyCombat
                 forward.Normalize();
                 while (true)
                 {
-                    count = Physics.OverlapSphereNonAlloc(center, settings.Radius, overlaps, settings.TargetMask, settings.Triggers);
+                    count = CombatPhysics.Scene.OverlapSphere(center, settings.Radius, overlaps, settings.TargetMask, settings.Triggers);
                     if (count < overlaps.Length) break;
                     Array.Resize(ref overlaps, overlaps.Length * 2);
                 }

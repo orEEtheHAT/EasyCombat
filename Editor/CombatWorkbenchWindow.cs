@@ -86,6 +86,12 @@ namespace EasyCombat.Editor
             }));
             var spacer = Box(toolbar, "grow");
             Button(toolbar, "Сохранить SO", () => Act(AssetDatabase.SaveAssets, "Настройки сохранены."));
+            var tools = Box(root, "toolbar row");
+            Button(tools,"Шаблоны механик",CombatTemplatesWindow.Open);
+            Button(tools,"Калькулятор",CombatCalculatorWindow.Open);
+            Button(tools,"Диагностика SO",CombatDiagnosticsWindow.Open);
+            Button(tools,"Объяснить состояние",CombatRuntimeInspectorWindow.Open);
+            Button(tools,"Документация",CombatDocumentation.Open);
             notice = Text(root, "Изменения общих SO влияют на все объекты, которые их используют. Ctrl+Z — отмена.", "notice");
             body = Box(root, "body grow");
             library = CombatAssetLibrary.Scan();
@@ -172,6 +178,7 @@ namespace EasyCombat.Editor
         private void CategoryButton(int index, string title, int count)
         {
             var button = Button(navigation, title + "   " + count, () => { category = index; BuildNavigation(); Filter(); }, "category");
+            button.tooltip=title;
             button.EnableInClassList("selected", category == index);
         }
         private void Filter()
@@ -381,7 +388,7 @@ namespace EasyCombat.Editor
             Text(composition, "В оружии нажми «Перевести в составной урон» и добавь строки Fire 2–4 / Poison 7–9. Каждая строка получает отдельный случайный урон; крит общий. Один удар запускает статусы и смерть один раз.\nДля взрыва назначь AreaDefinition оружию. Для непосредственной области выбери Delivery = Area. Длительные поля используют DamageArea + AreaPulseDefinition.\nCombatJournal хранит ограниченную историю. Вкладка «Журнал» показывает причину, части урона, иммунитеты, криты и убийства. Источник периодического урона сохраняется после уничтожения стрелка.", "guide-text");
             Text(scroll, "ПРОВЕРКА В ИГРЕ", "section-title");
             Text(scroll, "Полигон: 1–7 — оружие · 5 — огонь + яд · 6 — граната · 7 — конус статуса · T — периодическая область · H — лечение · R — сброс.\nHealth не уничтожает врага при смерти: реакцию подключает игровая логика. Изменения SO в Play Mode могут сохраняться в ассете — временные усиления храни в runtime.", "guide-text");
-            Button(scroll, "Открыть подробное руководство", () => AssetDatabase.OpenAsset(AssetDatabase.LoadMainAssetAtPath("Assets/GamesFactory/Combat/README.md")), "guide-link");
+            Button(scroll, "Открыть подробное руководство", CombatDocumentation.Open, "guide-link");
         }
         private void BuildPerformance()
         {
