@@ -78,11 +78,12 @@ namespace EasyCombat
     {
         public readonly float Amount, Maximum;
         public readonly GameObject Source;
+        public readonly CombatActorIdentity SourceIdentity;
         public readonly bool IsCritical;
         public readonly OverhealPolicy Overheal;
         public readonly int ShieldIndex;
         public HealingInfo(float amount, GameObject source = null, bool critical = false, float maximum = 0, OverhealPolicy overheal = OverhealPolicy.Discard, int shieldIndex = 0)
-        { Amount = amount; Source = source; IsCritical = critical; Maximum = maximum; Overheal = overheal; ShieldIndex = shieldIndex; }
+        { Amount = amount; Source = source; SourceIdentity=CombatActorIdentity.Capture(source); IsCritical = critical; Maximum = maximum; Overheal = overheal; ShieldIndex = shieldIndex; }
         public bool IsValid => CombatMath.Finite(Amount) && Amount >= 0 && CombatMath.Finite(Maximum) && Maximum >= 0
             && Overheal >= OverhealPolicy.Discard && Overheal <= OverhealPolicy.RestoreShield && ShieldIndex >= 0;
     }
@@ -91,8 +92,10 @@ namespace EasyCombat
         public readonly HealingInfo Healing;
         public readonly float AppliedAmount, ShieldRestored, Discarded;
         public readonly HealingRejection Rejection;
+        public readonly CombatActorIdentity Target;
+        public readonly Vector3 Position;
         public bool Applied => AppliedAmount > 0 || ShieldRestored > 0;
-        public HealingResult(HealingInfo healing, float applied = 0, float shield = 0, float discarded = 0, HealingRejection rejection = HealingRejection.None)
-        { Healing = healing; AppliedAmount = applied; ShieldRestored = shield; Discarded = discarded; Rejection = rejection; }
+        public HealingResult(HealingInfo healing, float applied = 0, float shield = 0, float discarded = 0, HealingRejection rejection = HealingRejection.None,CombatActorIdentity target=default,Vector3 position=default)
+        { Healing = healing; AppliedAmount = applied; ShieldRestored = shield; Discarded = discarded; Rejection = rejection; Target=target; Position=position; }
     }
 }

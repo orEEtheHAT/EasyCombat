@@ -311,7 +311,7 @@ namespace EasyCombat
                 var shield = healing.Overheal == OverhealPolicy.RestoreShield && defense != null
                     ? defense.RestoreShield(healing.ShieldIndex,excess) : 0;
                 if (shield > 0) ReconcileDefenseScheduler();
-                var result = new HealingResult(healing,applied,shield,excess-shield);
+                var result = new HealingResult(healing,applied,shield,excess-shield,target:identity,position:transform.position);
                 if (applied > 0) changedSignal.Publish(new HealthChange(previous,currentHealth,maximumHealth,HealthChangeReason.Healing));
                 if (shield > 0) defenseChangedSignal.Publish(this);
                 healedSignal.Publish(result);

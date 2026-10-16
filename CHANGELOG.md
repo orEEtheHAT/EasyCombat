@@ -43,3 +43,6 @@
 - Added scoped 3D physics queries and global-event isolation for safe editor simulations.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.
+
+- Added bounded presentation events with captured identities, source/critical separation, coalescing, rate budgets and an optional EasyFeedbacks output bridge.
+- Isolated shot/area observers and preserved shot/healing metadata across callbacks; added warm allocation and lifecycle regression tests.

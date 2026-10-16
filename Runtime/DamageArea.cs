@@ -12,6 +12,7 @@ namespace EasyCombat
         [SerializeField] private bool playOnEnable;
         private readonly AreaDamageQuery query = new AreaDamageQuery();
         private DamageInfo payload;
+        private DamageOrigin origin;
         private AreaSettings area;
         private Transform owner;
         private double elapsed, nextTick, duration, interval;
@@ -22,11 +23,14 @@ namespace EasyCombat
         public bool UsesSharedClock { get; private set; }
         public bool IsRunning { get; private set; }
         public float Radius => area.Radius;
+        public DamageOrigin Origin=>origin;
         public float Remaining => (float)Math.Max(0, duration - elapsed);
         public float NormalizedAge => duration > 0 ? Mathf.Clamp01((float)(elapsed / duration)) : 1;
-        public event Action<DamageArea> Began;
-        public event Action<DamageArea> Ended;
-        public event Action<DamageImpact> Impacted;
+        private readonly CombatSignal<DamageArea> began=new CombatSignal<DamageArea>(),ended=new CombatSignal<DamageArea>();
+        private readonly CombatSignal<DamageImpact> impacted=new CombatSignal<DamageImpact>();
+        public event Action<DamageArea> Began { add=>began.Add(value); remove=>began.Remove(value); }
+        public event Action<DamageArea> Ended { add=>ended.Add(value); remove=>ended.Remove(value); }
+        public event Action<DamageImpact> Impacted { add=>impacted.Add(value); remove=>impacted.Remove(value); }
         private Action<DamageImpact> callback;
         private void OnEnable() { if (playOnEnable && !PoolManaged) Begin(definition, source); }
         private void OnDisable() => Stop();
@@ -40,6 +44,7 @@ namespace EasyCombat
             area = snapshot.Area;
             // A persistent field snapshots its payload once, and applies it once per target per pulse.
             payload = snapshot.Payload;
+            origin=payload.Origin;
             elapsed = 0; duration = snapshot.Duration; interval = snapshot.Interval;
             nextTick = snapshot.ApplyImmediately ? 0 : interval;
             release = returnToPool;
@@ -49,13 +54,13 @@ namespace EasyCombat
             try
             {
                 if (UsesSharedClock && !AreaOverlapScheduler.Register(this, snapshot)) { Stop(); return false; }
-                Began?.Invoke(this);
+                began.Publish(this);
                 if (!UsesSharedClock && snapshot.ApplyImmediately) Advance(0);
             }
             catch { Stop(); throw; }
             return true;
         }
-        private void ReportImpact(DamageImpact impact) => Impacted?.Invoke(impact);
+        private void ReportImpact(DamageImpact impact) => impacted.Publish(impact);
         private void Update() { if (!UsesSharedClock && Time.deltaTime > 0) Advance(Time.deltaTime); }
         public void Advance(float deltaTime)
         {
@@ -106,7 +111,7 @@ namespace EasyCombat
             finishing = true;
             var returnToPool = release; release = null;
             payload = default; owner = null;
-            try { if(!CombatSaveSystem.IsRestoring) Ended?.Invoke(this); }
+            try { ended.Publish(this); }
             finally
             {
                 try { returnToPool?.Invoke(this); }

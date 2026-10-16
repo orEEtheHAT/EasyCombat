@@ -38,7 +38,7 @@ namespace EasyCombat
                 else if(definition.Delivery==DamageDelivery.Projectile)
                 { if(pool.Spawn(origin,direction,request,source,definition,impactCallback)==null) { nextShot=double.NegativeInfinity; return false; } }
                 else { trace.Begin(definition,request,source,direction); trace.Advance(origin,definition.Range,impactCallback,out end); trace.Complete(end,impactCallback); }
-                shots.Publish(new ShotInfo(origin,end,definition.Delivery,definition.Delivery==DamageDelivery.Area ? 0 : definition.HitRadius)); return true;
+                shots.Publish(new ShotInfo(origin,end,definition.Delivery,definition.Delivery==DamageDelivery.Area ? 0 : definition.HitRadius,definition,request.Origin,request.IsCritical,request.Source)); return true;
             }
             finally { trace.Clear(); firing=false; CombatReactionQueue.Exit(); }
         }

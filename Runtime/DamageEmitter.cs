@@ -9,8 +9,12 @@ namespace EasyCombat
         public readonly Vector3 Origin, End;
         public readonly DamageDelivery Delivery;
         public readonly float Radius;
-        public ShotInfo(Vector3 origin, Vector3 end, DamageDelivery delivery, float radius = 0)
-        { Origin = origin; End = end; Delivery = delivery; Radius = radius; }
+        public readonly AttackDefinition Attack;
+        public readonly DamageOrigin DamageOrigin;
+        public readonly bool Critical;
+        public readonly GameObject Source;
+        public ShotInfo(Vector3 origin, Vector3 end, DamageDelivery delivery, float radius = 0,AttackDefinition attack=null,DamageOrigin damageOrigin=default,bool critical=false,GameObject source=null)
+        { Origin = origin; End = end; Delivery = delivery; Radius = radius; Attack=attack; DamageOrigin=damageOrigin; Critical=critical; Source=source; }
     }
 
     [AddComponentMenu("EasyCombat/Damage Emitter")]
@@ -33,8 +37,10 @@ namespace EasyCombat
         public Transform OwnerRoot { get => ownerRoot != null ? ownerRoot : transform; set => ownerRoot = value; }
         public ProjectilePool Pool { get => projectilePool; set => projectilePool = value; }
         public DamageAreaPool AreaPool { get => areaPool; set => areaPool = value; }
-        public event Action<ShotInfo> Fired;
-        public event Action<DamageImpact> Impacted;
+        private readonly CombatSignal<ShotInfo> fired=new CombatSignal<ShotInfo>();
+        private readonly CombatSignal<DamageImpact> impacted=new CombatSignal<DamageImpact>();
+        public event Action<ShotInfo> Fired { add=>fired.Add(value); remove=>fired.Remove(value); }
+        public event Action<DamageImpact> Impacted { add=>impacted.Add(value); remove=>impacted.Remove(value); }
 
         public bool TryFire(Vector3 origin, Vector3 direction)
         {
@@ -48,9 +54,10 @@ namespace EasyCombat
 
         private bool Fire(Vector3 origin, Vector3 direction)
         {
-            if (!isActiveAndEnabled || attack == null || !attack.IsValid || CombatClock.Now < nextShotTime
+            var definition=attack;
+            if (!isActiveAndEnabled || definition == null || !definition.IsValid || CombatClock.Now < nextShotTime
                 || !CombatMath.Finite(origin) || !CombatMath.Finite(direction) || direction.sqrMagnitude < 0.000001f) return false;
-            if (attack.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled)) return false;
+            if (definition.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled)) return false;
             direction.Normalize();
             var sourceRoot = OwnerRoot;
             if (!CombatControl.IsAllowed(sourceRoot.gameObject,CombatRestriction.Attack)) return false;
@@ -59,18 +66,18 @@ namespace EasyCombat
                 resolvedOwner = sourceRoot;
                 ownerStatuses = sourceRoot.GetComponent<StatusController>();
             }
-            var damageMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(attack.DamageModifierStat) : 1f;
-            var rateMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(attack.FireRateModifierStat) : 1f;
+            var damageMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(definition.DamageModifierStat) : 1f;
+            var rateMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(definition.FireRateModifierStat) : 1f;
             if (!CombatMath.Positive(damageMultiplier) || !CombatMath.Positive(rateMultiplier)) return false;
-            var delivery = attack.Delivery;
-            var radius = delivery == DamageDelivery.Area ? 0 : attack.HitRadius;
-            var damage = attack.RollRandom(sourceRoot.gameObject, origin, direction, damageMultiplier);
+            var delivery = definition.Delivery;
+            var radius = delivery == DamageDelivery.Area ? 0 : definition.HitRadius;
+            var damage = definition.RollRandom(sourceRoot.gameObject, origin, direction, damageMultiplier);
             if (!damage.IsValid) return false;
-            var area = new AreaSettings(attack.Area);
+            var area = new AreaSettings(definition.Area);
             if (impactCallback == null) impactCallback = ReportImpact;
-            var end = origin + direction * attack.Range;
+            var end = origin + direction * definition.Range;
             // Reserve cooldown before invoking any damage/event callbacks.
-            nextShotTime = CombatClock.Now + attack.Cooldown / rateMultiplier;
+            nextShotTime = CombatClock.Now + definition.Cooldown / rateMultiplier;
             if (delivery == DamageDelivery.Area)
             {
                 end = origin;
@@ -78,7 +85,7 @@ namespace EasyCombat
             }
             else if (delivery == DamageDelivery.Projectile)
             {
-                if (projectilePool == null || projectilePool.Spawn(origin, direction, damage, sourceRoot, attack, impactCallback, areaPool) == null)
+                if (projectilePool == null || projectilePool.Spawn(origin, direction, damage, sourceRoot, definition, impactCallback, areaPool) == null)
                 {
                     nextShotTime = double.NegativeInfinity;
                     return false;
@@ -86,15 +93,15 @@ namespace EasyCombat
             }
             else
             {
-                trace.Begin(attack, damage, sourceRoot, direction, areaPool);
-                trace.Advance(origin, attack.Range, impactCallback, out end);
+                trace.Begin(definition, damage, sourceRoot, direction, areaPool);
+                trace.Advance(origin, definition.Range, impactCallback, out end);
                 trace.CompleteHitscan(end, impactCallback);
             }
-            Fired?.Invoke(new ShotInfo(origin, end, delivery, radius));
+            fired.Publish(new ShotInfo(origin,end,delivery,radius,definition,damage.Origin,damage.IsCritical,damage.Source));
             return true;
         }
 
-        private void ReportImpact(DamageImpact impact) => Impacted?.Invoke(impact);
+        private void ReportImpact(DamageImpact impact) => impacted.Publish(impact);
         public void ResetCooldown() => nextShotTime = double.NegativeInfinity;
         public void RefreshOwner() => resolvedOwner = null;
     }

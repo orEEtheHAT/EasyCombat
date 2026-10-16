@@ -90,7 +90,7 @@ namespace EasyCombat
                 var request=reroll ? definition.Attack.RollRandom(source.gameObject,at,direction,multiplier,origin.Child(CombatOriginKind.Attack)) : payload;
                 if(perSecond) request=request.Scale(interval);
                 trace.Begin(definition.Attack,request,source,direction,areaPool); trace.Advance(at,definition.Attack.Range,impactCallback,out var end); trace.CompleteHitscan(end,impactCallback);
-                pulses.Publish(new ShotInfo(at,end,DamageDelivery.Hitscan,definition.Attack.HitscanRadius));
+                pulses.Publish(new ShotInfo(at,end,DamageDelivery.Hitscan,definition.Attack.HitscanRadius,definition.Attack,request.Origin,request.IsCritical,request.Source));
             }
             finally { trace.Clear(); try { receipt.NotifyAndRelease(); } finally { CombatReactionQueue.Exit(); } }
         }

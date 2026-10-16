@@ -67,8 +67,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Eight recipe templates, dependency/cycle diagnostics and read-only runtime explanations.
 
 ## 13. Presentation
-- [ ] Structured presentation events and Easy Feedbacks bridge.
-- [ ] Coalescing and rate limits for feedback/numbers, separate from gameplay.
+- [x] Structured presentation events and Easy Feedbacks bridge.
+- [x] Coalescing and rate limits for feedback/numbers, separate from gameplay.
 
 ## 14. Validation and delivery
 - [ ] Isolated regression tests for every new block.

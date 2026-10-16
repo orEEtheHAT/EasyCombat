@@ -38,6 +38,7 @@ To run the package tests, install Unity Test Framework and add `com.oreethehat.e
 - Swept melee windows, sustained beams and sampled area enter/stay/exit payloads.
 - Optional 3D homing, ricochet, chain and returning projectile profiles; optional Physics2D hitscan/projectile/AOE adapter.
 - Versioned actor-state snapshots/JSON with stable catalogs, preserved captured status strength and restore without gameplay reward replay.
+- Bounded presentation events, coalescing, per-key/global limits and an optional EasyFeedbacks bridge.
 - Isolated battle calculator, recipe templates, dependency/cycle diagnostics and a live state/damage explanation window.
 
 Definitions are shared configuration. Health, resources, timers, shield charges and status instances are owned by actors. Treat definitions as immutable during combat.
@@ -61,6 +62,7 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Projectile motion and Physics2D / Движение снарядов и 2D](Documentation~/ProjectileMotion2D.ru.md)
 - [Save and restore / Снимки состояния](Documentation~/Saving.ru.md)
 - [Authoring tools / Инструменты автора](Documentation~/AuthoringTools.ru.md)
+- [Presentation / Звук, VFX и числа](Documentation~/Presentation.ru.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries

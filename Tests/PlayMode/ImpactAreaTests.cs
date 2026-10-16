@@ -187,12 +187,30 @@ namespace EasyCombat.Tests
             };
             field.Advance(1); Assert.That(ended, Is.EqualTo(1)); Assert.That(pool.ActiveCount, Is.Zero);
         }
-        [Test] public void ThrowingImpactCallbackStillReturnsFieldToPool()
+        [Test] public void ThrowingImpactObserverDoesNotStopFieldOrLaterObservers()
         {
-            Target(); var settings = Snapshot(); Physics.SyncTransforms();
+            var target=Target(); var settings = Snapshot(); Physics.SyncTransforms();
             var field = pool.Spawn(settings, origin + Vector3.forward * 4, Vector3.up, Vector3.forward);
+            var observed=0;
             field.Impacted += _ => throw new InvalidOperationException("Test callback");
-            Assert.Throws<InvalidOperationException>(() => field.Advance(1)); Assert.That(pool.ActiveCount, Is.Zero);
+            field.Impacted += _ => observed++;
+            LogAssert.Expect(LogType.Exception,"InvalidOperationException: Test callback");
+            Assert.DoesNotThrow(() => field.Advance(1)); Assert.That(pool.ActiveCount, Is.EqualTo(1));
+            Assert.That(target.Current,Is.EqualTo(98)); Assert.That(observed,Is.EqualTo(1)); field.Stop(); Assert.That(pool.ActiveCount,Is.Zero);
+        }
+        [Test] public void ThrowingEmitterObserversDoNotCancelPiercingOrChangeShotIdentity()
+        {
+            var first=Target(3); var second=Target(7); attack.Delivery=DamageDelivery.Hitscan; attack.Area=null; attack.ImpactArea=null;
+            attack.ContactBehavior=ContactBehavior.PierceTargets; attack.MaximumTargets=2;
+            var emitter=source.AddComponent<DamageEmitter>(); emitter.Attack=attack; ShotInfo shot=default; var impacts=0;
+            emitter.Impacted+=_=>throw new InvalidOperationException("Impact observer");
+            emitter.Impacted+=_=> { impacts++; emitter.Attack=pulseAttack; };
+            emitter.Fired+=_=>throw new InvalidOperationException("Shot observer"); emitter.Fired+=value=>shot=value;
+            LogAssert.Expect(LogType.Exception,"InvalidOperationException: Impact observer"); LogAssert.Expect(LogType.Exception,"InvalidOperationException: Impact observer");
+            LogAssert.Expect(LogType.Exception,"InvalidOperationException: Shot observer"); Physics.SyncTransforms();
+            Assert.That(emitter.TryFire(origin,Vector3.forward),Is.True);
+            Assert.That(first.Current,Is.EqualTo(90)); Assert.That(second.Current,Is.EqualTo(90)); Assert.That(impacts,Is.EqualTo(2));
+            Assert.That(shot.Attack,Is.SameAs(attack)); Assert.That(shot.Source,Is.SameAs(source)); Assert.That(shot.DamageOrigin.Actor.Id,Is.EqualTo(source.GetComponent<Health>().Identity.Id));
         }
         [Test] public void TwoOverlappingFieldsPulseIndependentlyWithoutDuplicateColliderHits()
         {
