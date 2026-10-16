@@ -12,9 +12,10 @@ namespace EasyCombat
         public override void Execute(in ReactionContext context)
         {
             if (!IsValid || context.Owner==null || context.Target==null) return;
-            var direction=context.Target.transform.position-context.Owner.transform.position;
+            var source=context.Source;
+            var direction=source!=null ? context.Target.transform.position-source.transform.position : context.Trigger.Result.Damage.Direction;
             if (PullTowardOwner) direction=-direction;
-            var intent=new CombatMotionIntent(direction.normalized*Speed+Vector3.up*UpwardSpeed,context.Owner.gameObject);
+            var intent=new CombatMotionIntent(direction.normalized*Speed+Vector3.up*UpwardSpeed,source);
             context.Target.GetComponent<ICombatMotionReceiver>()?.ApplyMotion(in intent);
         }
     }

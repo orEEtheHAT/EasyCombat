@@ -108,7 +108,7 @@ namespace EasyCombat
                 }
                 if (rule.Chance < 1 && CombatRandom.Value >= rule.Chance) continue;
                 var action = result.Damage.Origin.Action.Child(CombatOriginKind.Reaction);
-                var context = new ReactionContext(owner,target,record,action);
+                var context = new ReactionContext(owner,target,record,action,rule.UseTriggerSource);
                 if (!CombatReactionQueue.Enqueue(rule,in context)) { RejectedByBudget++; continue; }
                 state.Procs++;
                 if (rule.CooldownScope == ReactionCooldownScope.Actor) state.NextActorTime = now+rule.Cooldown;

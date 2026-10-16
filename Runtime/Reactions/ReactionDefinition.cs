@@ -11,6 +11,8 @@ namespace EasyCombat
     {
         public ReactionTrigger Trigger;
         public ReactionTarget Target;
+        [Tooltip("Attribute actions to the original attacker rather than this reaction's owner. Useful for buildup and linked body parts.")]
+        public bool UseTriggerSource;
         [Range(0,1)] public float Chance = 1;
         [Min(0)] public float Cooldown;
         public ReactionCooldownScope CooldownScope;

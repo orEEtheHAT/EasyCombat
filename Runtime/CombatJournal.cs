@@ -46,6 +46,12 @@ namespace EasyCombat
             Action = origin.Action.Child(CombatOriginKind.Status);
         }
         public DamageOrigin WithStatus(StatusDefinition status) => new DamageOrigin(in this, status);
+        private DamageOrigin(in DamageOrigin origin,CombatActionOrigin action)
+        {
+            Actor=origin.Actor; Attack=origin.Attack; Status=origin.Status; AttackName=origin.AttackName; StatusName=origin.StatusName;
+            CastId=origin.CastId; HasTeam=origin.HasTeam; Team=origin.Team; Action=action;
+        }
+        public DamageOrigin Child(CombatOriginKind kind)=>new DamageOrigin(in this,Action.Child(kind));
         public static DamageOrigin Capture(GameObject source, AttackDefinition attack = null)
         {
             var team = source != null ? source.GetComponentInParent<CombatTeam>() : null;

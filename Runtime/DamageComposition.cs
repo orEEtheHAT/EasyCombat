@@ -67,11 +67,12 @@ namespace EasyCombat
         public readonly float Incoming, Resistance, Effective, Applied;
         public readonly float HealthDamage, ShieldAbsorbed, ArmorPrevented, ResistanceDelta;
         public readonly float LifePrevented;
+        public readonly float Redirected;
         public float Overkill => Mathf.Max(0, HealthDamage - Applied - LifePrevented);
         public DamagePartResult(DamageTypeDefinition type, float incoming, float resistance, float effective, float applied,
-            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, float lifePrevented = 0)
+            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, float lifePrevented = 0, float redirected = 0)
         { Type = type; Incoming = incoming; Resistance = resistance; Effective = effective; Applied = applied;
-          HealthDamage = healthDamage ?? effective; ShieldAbsorbed = shieldAbsorbed; ArmorPrevented = armorPrevented; ResistanceDelta = resistanceDelta ?? incoming - effective; LifePrevented=lifePrevented; }
+          HealthDamage = healthDamage ?? effective; ShieldAbsorbed = shieldAbsorbed; ArmorPrevented = armorPrevented; ResistanceDelta = resistanceDelta ?? incoming - effective; LifePrevented=lifePrevented; Redirected=redirected; }
     }
 
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]

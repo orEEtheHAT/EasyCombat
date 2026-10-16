@@ -85,14 +85,29 @@ namespace EasyCombat.Editor
             {
                 Field("Capacity", "Максимум щита"); Percent("InitialFraction", "Заполнение при сбросе (%)"); Percent("Absorption", "Доля поглощения (%)");
                 Field("RechargePerSecond", "Восстановление в секунду"); Field("DelayAfterAbsorption", "Задержка после поглощения (с)");
+                Field("DamageCosts","Расход щита по типам урона (1 = обычный)");
+                EditorGUILayout.HelpBox("Стоимость должна быть больше нуля. Пустой список использует 1 единицу щита на 1 урона; 2 расходует щит вдвое быстрее.",MessageType.None);
                 EditorGUILayout.HelpBox("Остаток, который не помещается в щит, проходит дальше. 50% поглощения пропускает половину даже при полном щите. Задержку сбрасывает только реально поглощённый урон. Выключенный слой сохраняет запас и приостанавливает восстановление.", MessageType.Info);
             }
+            else if(target is TemporaryShieldLayer)
+            {
+                Field("Capacity","Ёмкость временного щита"); Field("Duration","Длительность, с"); Field("DecayPerSecond","Уменьшение в секунду"); Percent("Absorption","Поглощение (%)");
+                EditorGUILayout.HelpBox("Попадание не продлевает срок. При истечении слой выключается. ResetDefenseLayer заново выдаёт щит и начинает его срок.",MessageType.Info);
+            }
+            else if(target is ChargeProtectionLayer)
+            {
+                Field("Charges","Число зарядов"); Percent("Reduction","Поглощение зарядом (%)"); Field("RechargeInterval","Один заряд каждые, с (0 = без восстановления)");
+                EditorGUILayout.HelpBox("Один заряд на подходящее попадание целиком. Несколько каналов не расходуют несколько зарядов.",MessageType.Info);
+            }
+            else if(target is DamageCapLayer)
+            { Field("MaximumDamage","Предел урона за попадание (0 = выключен)"); Percent("MaximumHealthFraction","Предел от максимума HP (%)"); }
             else if (target is FlatArmorLayer)
             { Field("Reduction", "Вычесть из одного попадания"); EditorGUILayout.HelpBox("Вычитание одно на весь пакет, пропорционально подходящим частям. Разбиение огня на несколько строк не умножает броню.", MessageType.Info); }
             else if (target is ReductionLayer) Percent("Reduction", "Снижение урона (%)");
             else if (target is BlockLayer)
             {
                 Percent("Chance", "Шанс блока (%)"); Percent("Reduction", "Поглощение блоком (%)"); Field("Arc", "Сектор спереди (°)");
+                Field("Costs","Цена успешного блока");
                 EditorGUILayout.HelpBox("Смотрит по transform.forward цели и направлению входящего урона. Один бросок на пакет. 360° — всесторонний блок; при меньшем секторе урон без направления не блокируется. Для активного блока настрой слой изначально выключенным и включай на время удержания кнопки.", MessageType.Info);
             }
             else DrawPropertiesExcluding(serializedObject, "m_Script", "DisplayName", "HitKinds", "FilterTypes", "Types");

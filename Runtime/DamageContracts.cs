@@ -122,6 +122,7 @@ namespace EasyCombat
         public readonly int StatusesApplied;
         public readonly float HealthDamage, ShieldAbsorbed, ArmorPrevented, ResistanceDelta;
         public readonly float LifePrevented;
+        public readonly float Redirected;
         public readonly DefenseBreakdown Defenses;
         public float Overkill => Mathf.Max(0, HealthDamage - AppliedAmount - LifePrevented);
         public bool Applied => Rejection == DamageRejection.None && AppliedAmount > 0f;
@@ -129,13 +130,14 @@ namespace EasyCombat
 
         public DamageResult(DamageInfo damage, float appliedAmount, bool killed, DamageRejection rejection = DamageRejection.None,
             DamageBreakdown breakdown = default, float effectiveAmount = 0, int statusesApplied = 0,
-            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, DefenseBreakdown defenses = default, bool downed = false, float lifePrevented = 0)
+            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, DefenseBreakdown defenses = default, bool downed = false, float lifePrevented = 0, float redirected = 0)
         {
             Damage = damage;
             AppliedAmount = appliedAmount;
             Killed = killed;
             Downed = downed;
             LifePrevented = lifePrevented;
+            Redirected = redirected;
             Rejection = rejection;
             Breakdown = breakdown; EffectiveAmount = effectiveAmount; StatusesApplied = statusesApplied;
             HealthDamage = healthDamage ?? effectiveAmount; ShieldAbsorbed = shieldAbsorbed; ArmorPrevented = armorPrevented;

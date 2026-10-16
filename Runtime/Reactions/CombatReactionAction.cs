@@ -7,10 +7,26 @@ namespace EasyCombat
         public readonly Health Owner, Target;
         public readonly CombatRecord Trigger;
         public readonly CombatActionOrigin Action;
-        public ReactionContext(Health owner, Health target, CombatRecord trigger, CombatActionOrigin action)
-        { Owner = owner; Target = target; Trigger = trigger; Action = action; }
+        public readonly bool UseTriggerSource;
+        public ReactionContext(Health owner, Health target, CombatRecord trigger, CombatActionOrigin action,bool useTriggerSource=false)
+        { Owner = owner; Target = target; Trigger = trigger; Action = action; UseTriggerSource=useTriggerSource; }
+        public GameObject Source
+        {
+            get
+            {
+                if(!UseTriggerSource) return Owner!=null ? Owner.gameObject : null;
+                var source=Trigger.Result.Damage.Source; if(source==null) return null;
+                var health=source.GetComponentInParent<Health>();
+                return health!=null && Trigger.Result.Damage.Origin.Actor.Id>0 && health.Identity.Id!=Trigger.Result.Damage.Origin.Actor.Id ? null : source;
+            }
+        }
         public DamageOrigin Origin(AttackDefinition attack = null)
         {
+            if(UseTriggerSource)
+            {
+                var origin=Trigger.Result.Damage.Origin;
+                return new DamageOrigin(origin.Actor,attack,origin.CastId,hasTeam:origin.HasTeam,team:origin.Team,action:Action);
+            }
             var team = Owner != null ? Owner.GetComponentInParent<CombatTeam>() : null;
             return new DamageOrigin(Owner != null ? Owner.Identity : default, attack,Trigger.Result.Damage.Origin.CastId,
                 hasTeam:team != null,team:team != null ? team.Team : 0,action:Action);

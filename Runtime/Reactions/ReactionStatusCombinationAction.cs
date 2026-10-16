@@ -10,7 +10,7 @@ namespace EasyCombat
         public override void Execute(in ReactionContext context)
         {
             if(!IsValid || context.Target==null || context.Owner==null) return;
-            context.Target.GetComponent<StatusController>()?.TryCombine(Combination,context.Owner.gameObject,context.Trigger.Result,true,context.Origin());
+            context.Target.GetComponent<StatusController>()?.TryCombine(Combination,context.Source,context.Trigger.Result,true,context.Origin());
         }
     }
 }

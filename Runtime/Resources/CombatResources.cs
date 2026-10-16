@@ -3,6 +3,20 @@ using UnityEngine;
 
 namespace EasyCombat
 {
+    internal struct ResourceSpendReceipt
+    {
+        internal CombatResources Owner;
+        internal ResourceChange[] Changes;
+        internal int Count;
+        internal long Life;
+        internal void NotifyAndRelease()
+        {
+            var changes=Changes; if(changes==null) return;
+            var owner=Owner; var count=Count; var life=Life; Changes=null; Owner=null; Count=0; Life=0;
+            try { if(owner!=null) owner.NotifyDeferred(changes,count,life); }
+            finally { System.Buffers.ArrayPool<ResourceChange>.Shared.Return(changes,true); }
+        }
+    }
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Combat Resources")]
     public sealed class CombatResources : MonoBehaviour
     {
@@ -78,6 +92,36 @@ namespace EasyCombat
                 return true;
             }
             finally { mutating = false; }
+        }
+        // Used by defenses only after every reduction has validated. No callbacks run until the hit has committed.
+        internal bool TrySpendSilently(ReadOnlySpan<ResourceCost> costs,out ResourceSpendReceipt receipt)
+        {
+            receipt=default;
+            if(mutating || !isActiveAndEnabled) return false;
+            Span<float> totals=stackalloc float[Capacity]; if(!PrepareCosts(costs,totals)) return false;
+            var changes=System.Buffers.ArrayPool<ResourceChange>.Shared.Rent(Mathf.Max(1,states.Length)); var count=0;
+            mutating=true;
+            try
+            {
+                for(var i=0;i<states.Length;i++)
+                {
+                    if(totals[i]<=0) continue;
+                    var before=states[i].Current; states[i].Current-=totals[i]; states[i].Delay=states[i].SpendDelay;
+                    changes[count++]=new ResourceChange(states[i].View,before,ResourceChangeReason.Spend);
+                }
+                var health=GetComponent<Health>();
+                receipt=new ResourceSpendReceipt { Owner=this,Changes=changes,Count=count,Life=health!=null ? health.Identity.Id : 0 };
+                return true;
+            }
+            finally { mutating=false; }
+        }
+        internal void NotifyDeferred(ResourceChange[] changes,int count,long life)
+        {
+            var health=GetComponent<Health>();
+            if(life!=0 && (health==null || health.Identity.Id!=life)) return;
+            mutating=true;
+            try { for(var i=0;i<count;i++) changed.Publish(changes[i]); }
+            finally { mutating=false; }
         }
         public float Restore(ResourceDefinition key, float amount)
         {

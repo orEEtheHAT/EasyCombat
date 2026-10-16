@@ -21,6 +21,7 @@ namespace EasyCombat
         private float currentHealth;
         private bool initialized;
         private CombatLifeState lifeState;
+        private ResourceSpendReceipt pendingDefenseCosts;
         private StatusController statuses;
         private CombatActorIdentity identity;
         public CombatActorIdentity Identity { get { EnsureInitialized(); return identity; } }
@@ -106,7 +107,11 @@ namespace EasyCombat
             applyingDamage = true;
             CombatReactionQueue.Enter();
             try { return ApplyDamageCore(damage); }
-            finally { applyingDamage = false; CombatReactionQueue.Exit(); }
+            finally
+            {
+                try { pendingDefenseCosts.NotifyAndRelease(); }
+                finally { applyingDamage = false; CombatReactionQueue.Exit(); }
+            }
         }
         private DamageResult ApplyDamageCore(DamageInfo damage)
         {
@@ -120,6 +125,8 @@ namespace EasyCombat
             var rules = HitRules;
             var lifeRules = LifeRules;
             if(lifeRules!=null && !lifeRules.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
+            var redirector=GetComponent<DamageRedirector>();
+            if(redirector!=null && redirector.isActiveAndEnabled && !redirector.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
             if ((rules != null && !rules.IsValid) || (DefenseProfile != null && !DefenseProfile.IsValid))
                 return Reject(damage, DamageRejection.InvalidDefense);
             if (invulnerable || manualInvulnerability > 0 || hitInvulnerability > 0
@@ -165,6 +172,9 @@ namespace EasyCombat
             var healthParts = effective;
             if (defense != null && !defense.Process(DefenseStage.AfterResistance, context, ref healthParts, ref shieldParts, ref armorParts, ref defenses))
                 return Reject(damage, DamageRejection.InvalidDefense);
+            if(defense!=null && !defense.CommitCosts(this,out pendingDefenseCosts)) return Reject(damage,DamageRejection.InvalidDefense);
+            var redirectedParts=new DamageAmounts();
+            var redirected=redirector!=null ? redirector.Redirect(in damage,healthParts,out healthParts,out redirectedParts) : 0;
             var healthDamage = healthParts.Total;
             var shieldAbsorbed = shieldParts.Total; var armorPrevented = armorParts.Total;
             var resistanceDelta = incoming.Total - effectiveAmount;
@@ -203,7 +213,7 @@ namespace EasyCombat
                 breakdown.Add(new DamagePartResult(damage.Parts[i].Type, damage.Parts[i].Amount,
                     reductions[i].Amount, effective[i].Amount, share, healthParts[i].Amount,
                     shieldParts.Count > i ? shieldParts[i].Amount : 0, armorParts.Count > i ? armorParts[i].Amount : 0,
-                    incoming[i].Amount - effective[i].Amount,lifeShare));
+                    incoming[i].Amount - effective[i].Amount,lifeShare,redirectedParts.Count>i ? redirectedParts[i].Amount : 0));
             }
             if (rules != null && (applied > 0 || shieldAbsorbed > 0) && (!damage.IsPeriodic || rules.HitInvulnerabilityAffectsPeriodic))
                 hitInvulnerability = Mathf.Max(hitInvulnerability, rules.InvulnerabilityAfterHit);
@@ -217,14 +227,15 @@ namespace EasyCombat
                 if (statuses != null)
                 {
                     var hit = new DamageResult(damage, applied, killed, breakdown: breakdown, effectiveAmount: effectiveAmount,
-                        healthDamage: healthDamage, shieldAbsorbed: shieldAbsorbed, armorPrevented: armorPrevented, resistanceDelta: resistanceDelta, defenses: defenses);
+                        healthDamage: healthDamage, shieldAbsorbed: shieldAbsorbed, armorPrevented: armorPrevented, resistanceDelta: resistanceDelta, defenses: defenses,
+                        downed:becameDowned,lifePrevented:lifePrevented,redirected:redirected);
                     appliedStatuses = statuses.ApplyOnHit(damage.OnHitStatuses, in hit);
                 }
             }
-            var rejection = damage.Amount > 0 && healthDamage == 0 && shieldAbsorbed == 0 ? armorPrevented > 0 ? DamageRejection.Blocked : DamageRejection.Immune
+            var rejection = damage.Amount > 0 && healthDamage == 0 && shieldAbsorbed == 0 && redirected==0 ? armorPrevented > 0 ? DamageRejection.Blocked : DamageRejection.Immune
                 : damage.Amount == 0 && appliedStatuses == 0 ? DamageRejection.NoEffect : DamageRejection.None;
             var result = new DamageResult(damage, applied, killed, rejection, breakdown, effectiveAmount, appliedStatuses,
-                healthDamage, shieldAbsorbed, armorPrevented, resistanceDelta, defenses,becameDowned,lifePrevented);
+                healthDamage, shieldAbsorbed, armorPrevented, resistanceDelta, defenses,becameDowned,lifePrevented,redirected);
             CombatEvents.Publish(identity, result, this);
             if (shieldAbsorbed > 0) defenseChangedSignal.Publish(this);
             if (applied > 0)
@@ -370,6 +381,11 @@ namespace EasyCombat
         public bool SetDefenseLayerEnabled(int index, bool enabled)
         {
             EnsureInitialized(); if (defense == null || !defense.SetEnabled(index, enabled)) return false;
+            ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); return true;
+        }
+        public bool ResetDefenseLayer(int index,bool enabled=true)
+        {
+            EnsureInitialized(); if(defense==null || !defense.ResetLayer(index,enabled)) return false;
             ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); return true;
         }
         public float RestoreShield(int index, float amount)

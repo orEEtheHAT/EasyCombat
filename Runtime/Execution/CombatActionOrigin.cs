@@ -2,7 +2,7 @@ using System;
 
 namespace EasyCombat
 {
-    public enum CombatOriginKind { Attack, Status, Area, Reaction, Environment }
+    public enum CombatOriginKind { Attack, Status, Area, Reaction, Environment, Redirection }
     /// <summary>Small immutable tag snapshot; no allocation on emission or during filtering.</summary>
     public readonly struct CombatTagSet
     {

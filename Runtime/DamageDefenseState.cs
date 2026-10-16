@@ -35,6 +35,8 @@ namespace EasyCombat
         private readonly DefenseSlot[] slots;
         private readonly DefenseLayerState[] states, pending;
         private readonly string[] names;
+        private readonly ResourceCost[] pendingCosts;
+        private int pendingCostCount;
         public int Count => slots.Length;
         public DamageDefenseState(DefenseProfile profile)
         {
@@ -42,6 +44,8 @@ namespace EasyCombat
             slots = (DefenseSlot[])profile.Layers.Clone(); states = new DefenseLayerState[slots.Length];
             pending = new DefenseLayerState[slots.Length]; names = new string[slots.Length];
             for (var i = 0; i < Count; i++) names[i] = string.IsNullOrWhiteSpace(slots[i].Layer.DisplayName) ? slots[i].Layer.name : slots[i].Layer.DisplayName;
+            var costs=0; for(var i=0;i<Count;i++) if(slots[i].Layer is BlockLayer block) costs+=block.Costs.Length;
+            pendingCosts=costs>0 ? new ResourceCost[costs] : Array.Empty<ResourceCost>();
             Reset();
         }
         public DefenseLayerState GetState(int index) => states[index];
@@ -60,6 +64,12 @@ namespace EasyCombat
             if (index < 0 || index >= Count || states[index].Enabled == enabled) return false;
             states[index].Enabled = enabled; return true;
         }
+        internal bool ResetLayer(int index,bool enabled)
+        {
+            if(index<0 || index>=Count || slots[index].Layer==null || !slots[index].Layer.IsValid) return false;
+            var state=slots[index].Layer.CreateState(); if(!Valid(state)) return false;
+            state.Enabled=enabled; states[index]=state; return true;
+        }
         internal float RestoreShield(int index, float amount)
         {
             if (index < 0 || index >= Count || slots[index].Layer == null || !slots[index].Layer.IsShield || !CombatMath.Positive(amount)) return 0;
@@ -76,13 +86,19 @@ namespace EasyCombat
                 var layer = slots[i].Layer; if (layer == null || !states[i].Enabled) continue;
                 var state = states[i]; layer.Advance(ref state, delta);
                 if (!Valid(state)) continue;
-                changed |= state.Current != states[i].Current;
+                changed |= state.Current != states[i].Current || state.Enabled != states[i].Enabled;
                 states[i] = state;
             }
             return changed;
         }
-        internal void Begin() => Array.Copy(states, pending, Count);
+        internal void Begin() { Array.Copy(states,pending,Count); pendingCostCount=0; }
         internal void Commit() => Array.Copy(pending, states, Count);
+        internal bool CommitCosts(Health target,out ResourceSpendReceipt receipt)
+        {
+            receipt=default; if(pendingCostCount==0) return true;
+            var resources=target.GetComponent<CombatResources>();
+            return resources!=null && resources.TrySpendSilently(new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount),out receipt);
+        }
         internal bool Process(DefenseStage stage, in DefenseContext context, ref DamageAmounts amounts,
             ref DamageAmounts shields, ref DamageAmounts armor, ref DefenseBreakdown breakdown)
         {
@@ -93,6 +109,14 @@ namespace EasyCombat
                 if (layer == null || !layer.IsValid) return false;
                 if (layer.IsShield ? context.Damage.Protection.BypassShields : context.Damage.Protection.BypassArmor) continue;
                 if (!layer.Accepts(context.Damage)) continue;
+                var costs=layer is BlockLayer block ? block.Costs : null;
+                if(costs!=null && costs.Length>0)
+                {
+                    if(costs.Length>pendingCosts.Length-pendingCostCount) return false;
+                    Array.Copy(costs,0,pendingCosts,pendingCostCount,costs.Length);
+                    var resources=context.Target.GetComponent<CombatResources>();
+                    if(resources==null || !resources.CanSpend(new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount+costs.Length))) continue;
+                }
                 var reduced = layer.Reduce(in context, amounts, ref pending[i]);
                 if (!reduced.IsValid || reduced.Count != amounts.Count || !Valid(pending[i])) return false;
                 var removed = new DamageAmounts();
@@ -101,6 +125,7 @@ namespace EasyCombat
                     if (amounts[c].Type != reduced[c].Type || reduced[c].Amount > amounts[c].Amount) return false;
                     removed.Add(amounts[c].Type, amounts[c].Amount - reduced[c].Amount);
                 }
+                if(removed.Total>0 && costs!=null) pendingCostCount+=costs.Length;
                 if (layer.IsShield) shields = Add(shields, removed); else armor = Add(armor, removed);
                 breakdown.Add(new DefenseLayerResult(names[i], i, stage, layer.IsShield, removed.Total, pending[i].Current));
                 amounts = reduced;

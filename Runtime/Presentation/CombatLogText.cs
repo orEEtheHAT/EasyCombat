@@ -62,6 +62,7 @@ namespace EasyCombat.Presentation
             }
             if (result.Overkill > 0) text.Append("  ·  лишний урон: ").Append(result.Overkill.ToString("0.##"));
             if(result.LifePrevented>0) text.Append("  ·  защита жизни: ").Append(result.LifePrevented.ToString("0.##"));
+            if(result.Redirected>0) text.Append("  ·  перенаправлено: ").Append(result.Redirected.ToString("0.##"));
             return text.ToString();
         }
     }

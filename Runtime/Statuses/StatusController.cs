@@ -196,6 +196,8 @@ namespace EasyCombat
         /// <summary>Use a resolved hit for hit-dependent formulas. Health supplies this automatically for OnHitStatuses.</summary>
         public bool ApplyFromHit(StatusDefinition definition, in DamageResult hit)
             => CaptureAndApply(definition, hit.Damage.Source, hit.Damage.Origin, hit, true);
+        public bool ApplyFromHit(StatusDefinition definition,in DamageResult hit,GameObject source,DamageOrigin origin)
+            => CaptureAndApply(definition,source,origin,hit,true);
 
         private bool CaptureAndApply(StatusDefinition definition, GameObject source, DamageOrigin origin, DamageResult hit, bool hasHit)
         {

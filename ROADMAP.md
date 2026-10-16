@@ -44,8 +44,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Kill/assist attribution and exactly-once death notification.
 
 ## 8. Advanced protection
-- [ ] Temporary/decaying shields, damage caps and protection charges.
-- [ ] Shield-specific multipliers, redirection and block resource costs.
+- [x] Temporary/decaying shields, damage caps and protection charges.
+- [x] Shield-specific energy costs, bounded redirection and transactional block resource costs.
 
 ## 9. Composite targets and buildup
 - [ ] Linked body parts and destruction policies.

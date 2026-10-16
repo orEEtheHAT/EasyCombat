@@ -23,5 +23,7 @@
 - Added optional downed/finishing/revive behavior, nonlethal/minimum-HP policies and explicit life prevention accounting.
 - Added HealthSnapshot v2 with v1 compatibility, plus bounded last-hit/highest-damage kill and assist attribution.
 - Pruned destroyed Unity event subscribers, including components created by editor simulations without runtime lifecycle callbacks.
+- Added temporary/decaying shields, regenerating protection charges, shared damage caps and typed shield-energy costs.
+- Added bounded post-defense guardian redirection, and block costs committed only after all defense stages validate.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

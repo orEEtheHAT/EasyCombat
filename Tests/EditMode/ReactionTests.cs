@@ -103,5 +103,17 @@ namespace EasyCombat.Tests
             Assert.That(reflected.Action.ParentId,Is.EqualTo(shot.Origin.Action.Id)); Assert.That(reflected.Action.Kind,Is.EqualTo(CombatOriginKind.Reaction));
             Assert.That(reflected.WithStatus(Asset<StatusDefinition>()).Action.ReactionDepth,Is.EqualTo(1));
         }
+        [TestCase(false)] [TestCase(true)] public void StatusReactionCanKeepOriginalAttackerAndHitScaledPower(bool sourceHasHealth)
+        {
+            var source=sourceHasHealth ? a.gameObject : new GameObject("Hazard"); if(!sourceHasHealth) cleanup.Add(source);
+            var hp=Asset<HealthDefinition>(); hp.HitRules=Asset<HitRulesDefinition>(); hp.HitRules.AllowSelf=false; b.ApplyDefinition(hp);
+            var controller=b.gameObject.AddComponent<StatusController>(); var status=Asset<StatusDefinition>();
+            var tick=Asset<PeriodicDamageEffect>(); tick.Terms=new[] { new StatusDamageTerm(StatusDamageBasis.TriggeringHit,.5f) };
+            status.TickEffects=new StatusTickEffect[] { tick }; var action=Asset<ReactionStatusAction>(); action.Status=status;
+            var rule=Rule(b,ReactionTrigger.DamageTaken,ReactionTarget.Owner,action); rule.UseTriggerSource=true;
+            var hit=new DamageInfo(10,source); b.ApplyDamage(hit); controller.Advance(1);
+            Assert.That(b.Current,Is.EqualTo(85));
+            var stack=controller.GetStack(status,0); Assert.That(stack.Origin.Actor.Id,Is.EqualTo(hit.Origin.Actor.Id)); Assert.That(stack.Origin.Action.ReactionDepth,Is.EqualTo(1));
+        }
     }
 }
