@@ -36,12 +36,12 @@ namespace EasyCombat
         {
             owner = GetComponent<Health>();
             if (!isActiveAndEnabled) return;
-            CombatEvents.DamageResolved -= Resolved;
-            CombatEvents.DamageResolved += Resolved;
+            owner.Resolved -= Resolved;
+            owner.Resolved += Resolved;
             owner.Changed -= OwnerChanged;
             owner.Changed += OwnerChanged;
         }
-        private void OnDisable() { CombatEvents.DamageResolved -= Resolved; if (owner != null) owner.Changed -= OwnerChanged; }
+        private void OnDisable() { if (owner != null) { owner.Changed -= OwnerChanged; owner.Resolved-=Resolved; } }
         private void OnDestroy() => OnDisable();
         private void OwnerChanged(HealthChange change)
         { if (change.Reason == HealthChangeReason.Reset || change.Reason == HealthChangeReason.Restore) ResetCooldowns(); }
@@ -65,10 +65,12 @@ namespace EasyCombat
             var dealt = result.Damage.Origin.Actor.Id == owner.Identity.Id;
             var taken = record.Target.Id == owner.Identity.Id;
             if (!dealt && !taken) return;
+            var partHit=dealt && record.TargetHealth!=null && record.TargetHealth.GetComponent<CombatBodyPart>()!=null;
             foreach (var state in states)
             {
                 var rule = state.Definition;
                 if (rule == null || !rule.IsValid || rule.Chance <= 0) continue;
+                if(partHit && rule.IgnoreBodyPartContributions) continue;
                 var matches = rule.Trigger == ReactionTrigger.DamageTaken ? taken && result.AppliedAmount > 0
                     : rule.Trigger == ReactionTrigger.DamageDealt ? dealt && result.HitApplied
                     : rule.Trigger == ReactionTrigger.Kill ? dealt && result.Killed

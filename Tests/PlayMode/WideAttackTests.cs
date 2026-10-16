@@ -68,6 +68,22 @@ namespace EasyCombat.Tests
         private void Pierce(int maximum = 0)
         { attack.ContactBehavior = ContactBehavior.PierceTargets; attack.MaximumTargets = maximum; }
 
+        [Test] public void PrecollectedContactCannotHitNewPooledLife()
+        {
+            var near=Target(3); var far=Target(8); near.Damaged+=_=>far.ResetToFull();
+            Pierce(); Fire(DamageDelivery.Hitscan);
+            Assert.That(near.Current,Is.EqualTo(75)); Assert.That(far.Current,Is.EqualTo(100));
+        }
+        [Test] public void LongLivedProjectileMayHitARespawnedLifeOnANewSweep()
+        {
+            var target=Target(3); Pierce(); attack.Delivery=DamageDelivery.Projectile;
+            Physics.SyncTransforms();
+            projectile.Launch(origin,Vector3.forward,attack.RollDamage(owner.gameObject,origin,Vector3.forward,0,1),owner,attack,impacts.Add,p=>p.gameObject.SetActive(false));
+            projectile.Simulate(.2f); Assert.That(target.Current,Is.EqualTo(75));
+            target.ResetToFull(); target.transform.position=origin+Vector3.forward*7; Physics.SyncTransforms(); projectile.Simulate(.2f);
+            Assert.That(target.Current,Is.EqualTo(75)); Assert.That(impacts.Count,Is.EqualTo(2));
+        }
+
         [TestCase(DamageDelivery.Hitscan)] [TestCase(DamageDelivery.Projectile)]
         public void WideVolumeHitsOffAxisTarget(DamageDelivery delivery)
         {

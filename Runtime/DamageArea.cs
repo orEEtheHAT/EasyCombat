@@ -79,8 +79,11 @@ namespace EasyCombat
         }
         internal int SelectOverlapCandidates() => query.Select(transform.position, transform.forward, payload, area, owner);
         internal AreaCandidate GetOverlapCandidate(int index) => query.GetCandidate(index);
-        internal bool AllowsOverlapCandidate(in AreaCandidate candidate) => !(candidate.Receiver is Health health)
-            || health.HitRules == null || health.HitRules.IsValid && health.HitRules.CheckRelationship(health, payload) == DamageRejection.None;
+        internal bool AllowsOverlapCandidate(in AreaCandidate candidate)
+        {
+            var health=CombatTargetGroups.Rules(candidate.Receiver);
+            return health==null || health.HitRules==null || health.HitRules.IsValid && health.HitRules.CheckRelationship(health,payload)==DamageRejection.None;
+        }
         internal void ClearOverlapSelection() => query.ClearSelection();
         internal void SetOverlapAge(double age) => elapsed = age;
         internal void ApplyOverlapCandidate(in AreaCandidate candidate, long lease)

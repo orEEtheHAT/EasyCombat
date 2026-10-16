@@ -134,6 +134,8 @@ namespace EasyCombat
     {
         public readonly Collider Collider;
         public readonly MonoBehaviour Receiver;
+        public readonly CombatHitKey HitKey;
+        private readonly long life;
         private readonly Hurtbox zone;
         public readonly Vector3 Point, Normal;
         public readonly float Distance;
@@ -149,7 +151,10 @@ namespace EasyCombat
             Receiver = zone != null ? zone.Receiver : collider.GetComponentInParent<IDamageable>() as MonoBehaviour;
             WasTarget = Receiver != null && !(Receiver is Hurtbox) && Receiver is IDamageable;
             if (!WasTarget) Receiver = null;
+            HitKey=WasTarget ? new CombatHitKey(Receiver) : default;
+            life=WasTarget ? CombatTargetGroups.Life(Receiver) : 0;
         }
+        public bool IsCurrent=>!WasTarget || Receiver!=null && (life==0 || CombatTargetGroups.Life(Receiver)==life) && HitKey.Equals(new CombatHitKey(Receiver));
 
         public DamageImpact Apply(DamageInfo damage)
         {

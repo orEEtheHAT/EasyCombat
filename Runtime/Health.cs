@@ -60,6 +60,10 @@ namespace EasyCombat
         public event Action<HealingResult> Healed { add => healedSignal.Add(value); remove => healedSignal.Remove(value); }
         private readonly CombatSignal<Health> downedSignal=new CombatSignal<Health>();
         public event Action<Health> Downed { add=>downedSignal.Add(value); remove=>downedSignal.Remove(value); }
+        private readonly CombatSignal<CombatRecord> resolvedSignal=new CombatSignal<CombatRecord>();
+        public event Action<CombatRecord> Resolved { add=>resolvedSignal.Add(value); remove=>resolvedSignal.Remove(value); }
+        public int ResolvedSubscriberCount=>resolvedSignal.Count;
+        internal void PublishResolved(in CombatRecord record)=>resolvedSignal.Publish(record);
 
         private void Awake() => EnsureInitialized();
         private void OnEnable() { EnsureInitialized(); ReconcileDefenseScheduler(); }
@@ -98,6 +102,19 @@ namespace EasyCombat
             var baseReduction = Resistances != null ? Resistances.GetReduction(type) : 0f;
             var statusReduction = statuses != null ? statuses.GetResistanceModifier(type) : 0f;
             return Mathf.Clamp(baseReduction + statusReduction, -1f, 1f);
+        }
+        // Compound parts share actor eligibility; their individual dodge/defense stages remain independent.
+        internal DamageRejection CheckSharedEligibility(in DamageInfo damage)
+        {
+            EnsureInitialized();
+            if(!damage.IsValid) return DamageRejection.InvalidAmount;
+            if(!isActiveAndEnabled) return DamageRejection.Disabled;
+            if(!IsAlive) return DamageRejection.Dead;
+            var rules=HitRules;
+            if(rules!=null && !rules.IsValid || LifeRules!=null && !LifeRules.IsValid || DefenseProfile!=null && !DefenseProfile.IsValid) return DamageRejection.InvalidDefense;
+            if(invulnerable || manualInvulnerability>0 || hitInvulnerability>0 && (!damage.IsPeriodic || rules!=null && rules.HitInvulnerabilityAffectsPeriodic)
+                || rules!=null && rules.Invulnerable) return DamageRejection.Invulnerable;
+            return rules!=null ? rules.CheckRelationship(this,damage) : DamageRejection.None;
         }
 
         public DamageResult ApplyDamage(DamageInfo damage)

@@ -25,5 +25,8 @@
 - Pruned destroyed Unity event subscribers, including components created by editor simulations without runtime lifecycle callbacks.
 - Added temporary/decaying shields, regenerating protection charges, shared damage caps and typed shield-energy costs.
 - Added bounded post-defense guardian redirection, and block costs committed only after all defense stages validate.
+- Added linked body parts, actor-group AOE/piercing, destruction/reset policies and life-aware contact deduplication.
+- Added typed buildup, decay, cooldowns and bounded threshold actions with original source attribution.
+- Routed actor reactions/attribution through local participant signals instead of one global listener per actor.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

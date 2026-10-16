@@ -84,6 +84,9 @@ namespace EasyCombat
         public DamageInfo WithProtection(DamageProtection protection) => HasFormula
             ? new DamageInfo(Formula,Source,Point,Direction,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection)
             : new DamageInfo(Parts,Source,Point,Direction,IsCritical,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection);
+        public DamageInfo WithStatuses(StatusApplication[] applications)=>HasFormula
+            ? new DamageInfo(Formula,Source,Point,Direction,IsPeriodic,applications,Origin,StatusPolicy,Protection)
+            : new DamageInfo(Parts,Source,Point,Direction,IsCritical,IsPeriodic,applications,Origin,StatusPolicy,Protection);
         public DamageInfo Adjust(DamageModifierProfile profile)
         {
             if (profile == null) return this;

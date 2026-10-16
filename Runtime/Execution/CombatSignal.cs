@@ -9,6 +9,7 @@ namespace EasyCombat
         private Action<T> handlers;
         private Action<T>[] listeners = Array.Empty<Action<T>>();
         private int depth;
+        internal int Count=>listeners.Length;
         public void Add(Action<T> handler) { handlers += handler; Rebuild(); }
         public void Remove(Action<T> handler) { handlers -= handler; Rebuild(); }
         private void Rebuild()

@@ -48,8 +48,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Shield-specific energy costs, bounded redirection and transactional block resource costs.
 
 ## 9. Composite targets and buildup
-- [ ] Linked body parts and destruction policies.
-- [ ] Stagger/status buildup resources with threshold actions.
+- [x] Linked body parts and destruction policies.
+- [x] Stagger/status buildup resources with threshold actions.
 
 ## 10. Abilities and delivery
 - [ ] Ability execution, targeting, costs, cooldowns, charges and cancellation.

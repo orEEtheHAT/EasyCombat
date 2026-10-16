@@ -138,13 +138,13 @@ namespace EasyCombat
                             var candidate = lease.Area.GetOverlapCandidate(c);
                             if (!lease.Area.AllowsOverlapCandidate(candidate)) continue;
                             var winner = new Winner { Lease = lease, Candidate = candidate };
-                            if (group.Indices.TryGetValue(candidate.Receiver, out var index))
+                            if (group.Indices.TryGetValue(candidate.Group, out var index))
                             {
                                 var old = group.Winners[index].Lease;
                                 if (lease.Priority > old.Priority || lease.Priority == old.Priority && lease.Id < old.Id)
                                     group.Winners[index] = winner;
                             }
-                            else { group.Indices.Add(candidate.Receiver, group.Winners.Count); group.Winners.Add(winner); }
+                            else { group.Indices.Add(candidate.Group, group.Winners.Count); group.Winners.Add(winner); }
                         }
                     }
                     finally { if (lease.Area != null) lease.Area.ClearOverlapSelection(); }

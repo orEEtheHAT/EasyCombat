@@ -8,7 +8,7 @@ namespace EasyCombat
     internal sealed class AttackTrace
     {
         private readonly DamageQuery query = new DamageQuery();
-        private readonly HashSet<MonoBehaviour> visited = new HashSet<MonoBehaviour>(16);
+        private readonly HashSet<CombatHitKey> visited = new HashSet<CombatHitKey>(16);
         private AreaDamageQuery areaQuery;
         private AreaSettings area;
         private AreaSpawnSnapshot spawnedArea;
@@ -55,7 +55,8 @@ namespace EasyCombat
                     if (contact.Collider == null || !contact.Collider.enabled || !contact.Collider.gameObject.activeInHierarchy) continue;
                     // A receiver destroyed by an earlier callback must not become a new wall.
                     if (contact.WasTarget && contact.Receiver == null) continue;
-                    if (contact.WasTarget && !visited.Add(contact.Receiver)) continue;
+                    if (!contact.IsCurrent) continue;
+                    if (contact.WasTarget && !visited.Add(contact.HitKey)) continue;
                     contactCount++;
                     var stop = !piercing || !contact.WasTarget || (maximumTargets > 0 && visited.Count >= maximumTargets);
                     if (movingObject != null) movingObject.position = origin + direction * contact.Distance;

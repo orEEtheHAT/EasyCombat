@@ -33,6 +33,7 @@ To run the package tests, install Unity Test Framework and add `com.oreethehat.e
 - Status lifecycle notifications, category dispels, exact stack costs, status resistance and overlapping control restrictions.
 - Atomic status combinations, optional downed/revive rules, nonlethal damage and bounded kill/assist attribution.
 - Temporary/decaying shields, protection charges, damage caps, paid blocks and bounded guardian redirection.
+- Linked body-part durability, grouped contacts and independent buildup meters with deferred threshold actions.
 
 Definitions are shared configuration. Health, resources, timers, shield charges and status instances are owned by actors. Treat definitions as immutable during combat.
 
@@ -50,6 +51,7 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Statuses and control / Статусы и контроль](Documentation~/StatusesControl.ru.md)
 - [Life and attribution / Жизнь и учёт убийств](Documentation~/LifeAttribution.ru.md)
 - [Advanced defense / Расширенная защита](Documentation~/AdvancedDefense.ru.md)
+- [Body parts and buildup / Части тела и накопление](Documentation~/Composite.ru.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries

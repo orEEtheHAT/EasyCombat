@@ -95,7 +95,10 @@ namespace EasyCombat
         internal static void Publish(CombatActorIdentity target, DamageResult result, Health targetHealth = null)
         {
             var snapshot = listeners;
-            if (snapshot.Length == 0) return;
+            var source=result.Damage.Source!=null ? result.Damage.Source.GetComponentInParent<Health>() : null;
+            if(source!=null && source.Identity.Id!=result.Damage.Origin.Actor.Id) source=null;
+            if (snapshot.Length == 0 && (targetHealth==null || targetHealth.ResolvedSubscriberCount==0)
+                && (source==null || source.ResolvedSubscriberCount==0)) return;
             var record = new CombatRecord(NextId(), CombatClock.Now, target, result,targetHealth);
             for (var i = 0; i < snapshot.Length; i++)
             {
@@ -104,6 +107,8 @@ namespace EasyCombat
                 try { snapshot[i](record); }
                 catch (Exception exception) { Debug.LogException(exception); } // Observability must not cancel death/gameplay events.
             }
+            if(targetHealth!=null) targetHealth.PublishResolved(in record);
+            if(source!=null && source!=targetHealth) source.PublishResolved(in record);
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSubscribers() { handlers = null; listeners = Array.Empty<Action<CombatRecord>>(); }

@@ -49,10 +49,10 @@ namespace EasyCombat
         private void Bind()
         {
             health=GetComponent<Health>(); if(!isActiveAndEnabled) return;
-            CombatEvents.DamageResolved-=Resolved; CombatEvents.DamageResolved+=Resolved;
+            health.Resolved-=Resolved; health.Resolved+=Resolved;
             health.Changed-=HealthChanged; health.Changed+=HealthChanged;
         }
-        private void OnDisable() { CombatEvents.DamageResolved-=Resolved; if(health!=null) health.Changed-=HealthChanged; }
+        private void OnDisable() { if(health!=null) { health.Resolved-=Resolved; health.Changed-=HealthChanged; } }
         private void OnDestroy()=>OnDisable();
         private void HealthChanged(HealthChange change)
         { if(change.Reason==HealthChangeReason.Reset || change.Reason==HealthChangeReason.Restore) { Array.Clear(contributions,0,count); count=0; } }

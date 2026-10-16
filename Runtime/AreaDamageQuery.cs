@@ -8,10 +8,12 @@ namespace EasyCombat
     {
         public Collider Collider;
         public MonoBehaviour Receiver;
+        public MonoBehaviour Group;
         public Hurtbox Zone;
         public Vector3 Point;
         public float Distance;
         public long LifeId;
+        public long GroupLifeId;
     }
 
     /// <summary>Reusable area selector shared by direct AOE and overlap arbitration.</summary>
@@ -57,14 +59,15 @@ namespace EasyCombat
                     if (settings.RequireLineOfSight && distance > .001f
                         && visibility.Cast(center, delta / distance, distance, 0, settings.ObstacleMask, QueryTriggerInteraction.Ignore, owner, out var obstruction)
                         && (!TryResolve(obstruction.collider, out var blockedReceiver, out _) || blockedReceiver != receiver)) continue;
-                    var candidate = new AreaCandidate { Collider = collider, Receiver = receiver, Zone = zone, Point = point,
-                        Distance = distance, LifeId = receiver is Health health ? health.Identity.Id : 0 };
-                    if (indices.TryGetValue(receiver, out var existing))
+                    var group=CombatTargetGroups.Key(receiver);
+                    var candidate = new AreaCandidate { Collider = collider, Receiver = receiver, Group=group, Zone = zone, Point = point,
+                        Distance = distance, LifeId = CombatTargetGroups.Life(receiver), GroupLifeId=group is Health groupHealth ? groupHealth.Identity.Id : 0 };
+                    if (indices.TryGetValue(group, out var existing))
                     {
                         var old = candidates[existing];
                         if (distance < old.Distance || (distance == old.Distance && collider.GetInstanceID() < old.Collider.GetInstanceID())) candidates[existing] = candidate;
                     }
-                    else { indices.Add(receiver, candidates.Count); candidates.Add(candidate); }
+                    else { indices.Add(group, candidates.Count); candidates.Add(candidate); }
                 }
                 return candidates.Count;
             }
@@ -88,7 +91,8 @@ namespace EasyCombat
         {
             if (candidate.Receiver == null || !candidate.Receiver.isActiveAndEnabled || candidate.Collider == null
                 || !candidate.Collider.enabled || !candidate.Collider.gameObject.activeInHierarchy
-                || candidate.Receiver is Health h && h.Identity.Id != candidate.LifeId) return false;
+                || candidate.LifeId!=0 && CombatTargetGroups.Life(candidate.Receiver)!=candidate.LifeId
+                || candidate.GroupLifeId!=0 && (!(candidate.Group is Health groupHealth) || groupHealth==null || groupHealth.Identity.Id!=candidate.GroupLifeId)) return false;
             var multiplier = settings.DistanceFalloff ? Mathf.Lerp(1, settings.EdgeMultiplier, candidate.Distance / settings.Radius) : 1;
             if (multiplier <= 0) return false;
             var direction = candidate.Point - center;
@@ -102,7 +106,8 @@ namespace EasyCombat
         {
             if (owner != null && (collider.transform == owner || collider.transform.IsChildOf(owner)
                 || receiver.transform == owner || receiver.transform.IsChildOf(owner))) return true;
-            return source.Id != 0 && receiver is Health health && health.Identity.Id == source.Id;
+            var health=CombatTargetGroups.Rules(receiver);
+            return source.Id != 0 && health!=null && health.Identity.Id == source.Id;
         }
         private static bool AllowsTeam(MonoBehaviour target, AreaTargetFilter filter, DamageOrigin origin)
         {

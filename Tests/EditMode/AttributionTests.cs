@@ -43,11 +43,11 @@ namespace EasyCombat.Tests
         [Test] public void DestroyedEditModeSubscribersArePrunedBeforeDispatch()
         {
             var target=Actor("Destroyed tracker"); var profile=Asset<AttributionDefinition>();
-            var before=CombatEvents.SubscriberCount; target.gameObject.AddComponent<CombatAttribution>().Configure(profile);
-            Assert.That(CombatEvents.SubscriberCount,Is.EqualTo(before+1));
-            Object.DestroyImmediate(target.gameObject);
-            Actor("Survivor").ApplyDamage(new DamageInfo(1));
-            Assert.That(CombatEvents.SubscriberCount,Is.LessThanOrEqualTo(before));
+            var before=target.ResolvedSubscriberCount; var tracker=target.gameObject.AddComponent<CombatAttribution>(); tracker.Configure(profile);
+            Assert.That(target.ResolvedSubscriberCount,Is.EqualTo(before+1));
+            Object.DestroyImmediate(tracker);
+            target.ApplyDamage(new DamageInfo(1));
+            Assert.That(target.ResolvedSubscriberCount,Is.LessThanOrEqualTo(before));
             UnityEngine.TestTools.LogAssert.NoUnexpectedReceived();
         }
     }

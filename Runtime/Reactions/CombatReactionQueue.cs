@@ -24,16 +24,20 @@ namespace EasyCombat
         internal static void Enter() { if (transactions == 0 && !flushing) { ResolutionId++; reserved=0; } transactions++; }
         internal static void Exit() { transactions--; if (transactions == 0) Flush(); }
         internal static bool Enqueue(ReactionDefinition recipe, in ReactionContext context)
+            =>Enqueue(recipe.Actions,in context);
+        internal static bool Enqueue(CombatReactionAction[] actions,in ReactionContext context)
         {
-            if (context.Action.ReactionDepth > MaximumReactionDepth || recipe.Actions.Length > Capacity-count || recipe.Actions.Length>MaximumActionsPerFlush-reserved)
-            { DroppedActions += recipe.Actions.Length; return false; }
-            foreach (var action in recipe.Actions)
+            if(actions==null || actions.Length==0 || actions.Length>8) return false;
+            foreach(var action in actions) if(action==null || !action.IsValid) return false;
+            if (context.Action.ReactionDepth > MaximumReactionDepth || actions.Length > Capacity-count || actions.Length>MaximumActionsPerFlush-reserved)
+            { DroppedActions += actions.Length; return false; }
+            foreach (var action in actions)
             {
                 pending[(head+count)%Capacity] = new Pending { Action = action, Context = context,
                     OwnerLife = context.Owner != null ? context.Owner.Identity.Id : 0, TargetLife = context.Target != null ? context.Target.Identity.Id : 0 };
                 count++;
             }
-            reserved+=recipe.Actions.Length;
+            reserved+=actions.Length;
             return true;
         }
         internal static bool EnqueueDamage(Health target,DamageInfo damage)
