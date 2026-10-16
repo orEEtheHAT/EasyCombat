@@ -71,8 +71,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Coalescing and rate limits for feedback/numbers, separate from gameplay.
 
 ## 14. Validation and delivery
-- [ ] Isolated regression tests for every new block.
-- [ ] Shooter, melee, mass-combat and status-combination samples.
+- [x] Isolated regression tests for every new block.
+- [x] Shooter, melee, mass-combat and status-combination samples.
 - [ ] WebGL build and browser smoke test; measured load scenarios.
 - [ ] Package integrity, migration guide, API docs and release notes.
 

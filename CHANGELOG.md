@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-preview.1 — in development
+## 0.1.0 — 2026-10-17
 
 - Extracted the existing combat foundation into a standalone UPM package.
 - Renamed runtime API namespace to `EasyCombat` and assembly to `EasyCombat.Runtime`.
@@ -46,3 +46,6 @@ Further modules are tracked in ROADMAP.md; this entry is updated before release.
 
 - Added bounded presentation events with captured identities, source/critical separation, coalescing, rate budgets and an optional EasyFeedbacks output bridge.
 - Isolated shot/area observers and preserved shot/healing metadata across callbacks; added warm allocation and lifecycle regression tests.
+
+- Added the dependency-free Combat Lab sample: shooter, swept melee, mass projectiles and automatic poison combination, with bounded floating damage numbers.
+- Declared built-in Unity module requirements explicitly and documented public API entry points and release validation.

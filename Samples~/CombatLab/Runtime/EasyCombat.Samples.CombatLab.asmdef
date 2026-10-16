@@ -1,0 +1,6 @@
+{
+  "name": "EasyCombat.Samples.CombatLab",
+  "rootNamespace": "EasyCombat.Samples",
+  "references": ["EasyCombat.Runtime"],
+  "autoReferenced": true
+}

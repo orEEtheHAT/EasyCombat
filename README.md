@@ -2,19 +2,21 @@
 
 Modular, ScriptableObject-driven combat for Unity 6.3. Stats, resources, health, damage, defenses, statuses and abilities belong to one package with independent internal modules.
 
-**Development preview.** See [ROADMAP](ROADMAP.md) for implemented and planned work. The foundation is covered by EditMode and PlayMode regression tests; new modules are validated as they are added.
+**Initial release 0.1.0.** The agreed combat roadmap is implemented; see [ROADMAP](ROADMAP.md) and the validation report for scope and tested limits. Networking and complete 2D delivery parity are outside this release.
 
 ## Installation
 
 For local development, use **Package Manager → Add package from disk** and select `package.json`. In this development project the package is embedded under `Packages/com.oreethehat.easy-combat`.
 
-For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git`. Pin a release tag for production; `main` is ongoing development.
+For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.1.0`. Pin a release tag for production; `main` is ongoing development.
 
 Import **Basic Arena** from the Samples tab, run **EasyCombat → Samples → Create Basic Arena**, and press Play. The generated SOs are editable under `Assets/EasyCombatSamples/`. The sample has also built successfully for WebGL in an isolated Unity 6000.3.22f1 project.
 
+Import **Combat Lab** for shooter, swept melee, 100/500/1000 projectile volleys and an automatic three-poison-stacks-to-burst recipe. Run **EasyCombat → Samples → Create Combat Lab**.
+
 Runtime and editor authoring do not depend on ECM2, PrimeTween, EasyFeedbacks, URP, Input System, or Yandex SDK. Optional adapters are imported separately from Package Manager's Samples tab after installing their prerequisites.
 
-To run the package tests, install Unity Test Framework and add `com.oreethehat.easy-combat` to the project manifest's `testables` array. Assemblies: `EasyCombat.EditModeTests`, `EasyCombat.PlayModeTests`.
+To run the package tests, install Unity Test Framework and add `com.oreethehat.easy-combat` to the project manifest's `testables` array. Assemblies: `EasyCombat.EditModeTests`, `EasyCombat.PlayModeTests`, `EasyCombat.EditorToolsTests`; with Physics2D installed, also `EasyCombat.Physics2D.Tests` and `EasyCombat.Physics2D.PlayModeTests`.
 
 ## Current foundation
 
@@ -63,6 +65,8 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Save and restore / Снимки состояния](Documentation~/Saving.ru.md)
 - [Authoring tools / Инструменты автора](Documentation~/AuthoringTools.ru.md)
 - [Presentation / Звук, VFX и числа](Documentation~/Presentation.ru.md)
+- [API entry points](Documentation~/API.ru.md)
+- [Validation and limits](Documentation~/Validation.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries

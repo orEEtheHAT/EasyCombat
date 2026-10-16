@@ -1,0 +1,6 @@
+{
+  "name": "EasyCombat.Samples.CombatLab.Editor",
+  "references": ["EasyCombat.Runtime", "EasyCombat.Samples.CombatLab"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

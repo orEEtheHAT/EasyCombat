@@ -1,7 +1,7 @@
 {
   "name": "com.oreethehat.easy-combat",
   "displayName": "EasyCombat",
-  "version": "0.1.0-preview.1",
+  "version": "0.1.0",
   "unity": "6000.3",
   "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
   "author": {
@@ -23,6 +23,11 @@
       "path": "Samples~/BasicArena"
     },
     {
+      "displayName": "Combat Lab",
+      "description": "Shooter, swept melee, 100/500/1000 projectile volleys and poison combination, with bounded presentation. No third-party dependencies.",
+      "path": "Samples~/CombatLab"
+    },
+    {
       "displayName": "ECM2 Adapter",
       "description": "Optional adapter. Requires Easy Character Movement 2. Includes only EasyCombat integration code.",
       "path": "Samples~/ECM2"
@@ -39,5 +44,12 @@
   },
   "documentationUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/Documentation~/CombatGuide.ru.md",
   "changelogUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/CHANGELOG.md",
-  "licensesUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/LICENSE.md"
+  "licensesUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/LICENSE.md",
+  "dependencies": {
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0"
+  }
 }
