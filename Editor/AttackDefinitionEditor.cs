@@ -15,6 +15,7 @@ namespace EasyCombat.Editor
             Field("Delivery", "Способ попадания");
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Урон", EditorStyles.boldLabel);
+            Field("Protection", "Пробивание и обход защиты");
             Field("StatusOnly", "Только статусы, без урона");
             var channels = serializedObject.FindProperty("DamageChannels");
             if (!serializedObject.FindProperty("StatusOnly").boolValue)

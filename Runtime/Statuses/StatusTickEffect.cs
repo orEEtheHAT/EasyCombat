@@ -11,8 +11,9 @@ namespace EasyCombat
         public readonly StatusDefinition Definition;
         public readonly DamageResult Hit;
         public readonly bool HasHit;
-        public StatusCaptureContext(Health target, GameObject source, StatusDefinition definition, DamageResult hit = default, bool hasHit = false)
-        { Target = target; Source = source; Definition = definition; Hit = hit; HasHit = hasHit; }
+        public readonly DamageOrigin Origin;
+        public StatusCaptureContext(Health target, GameObject source, StatusDefinition definition, DamageResult hit = default, bool hasHit = false, DamageOrigin origin = default)
+        { Target = target; Source = source; Definition = definition; Hit = hit; HasHit = hasHit; Origin = origin.CastId != 0 ? origin : hit.Damage.Origin; }
     }
 
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
@@ -29,9 +30,13 @@ namespace EasyCombat
         public readonly bool HasCapturedValue;
         public readonly double PlannedTickCount;
         public readonly DamageFormulaSnapshot Formula;
+        public readonly float OutgoingMultiplier;
+        public readonly bool HasOutgoingType;
+        public readonly DamageTypeDefinition OutgoingType;
+        public readonly float Power;
         public StatusTickContext(StatusController controller, Health target, GameObject source, StatusDefinition definition, int stacks,
             DamageOrigin origin = default, long stackId = 0, float capturedValue = 0, bool hasCapturedValue = false, float duration = 0, float interval = 0, double plannedTickCount = 0,
-            DamageFormulaSnapshot formula = default)
+            DamageFormulaSnapshot formula = default, float outgoingMultiplier = 1, bool hasOutgoingType = false, DamageTypeDefinition outgoingType = null, float power = 1)
         {
             Controller = controller; Target = target; Source = source; Definition = definition; Stacks = stacks; Origin = origin; StackId = stackId;
             CapturedValue = capturedValue; HasCapturedValue = hasCapturedValue;
@@ -39,6 +44,8 @@ namespace EasyCombat
             Interval = interval > 0 ? interval : definition != null ? definition.TickInterval : 0;
             PlannedTickCount = plannedTickCount > 0 ? plannedTickCount : PeriodicDamageEffect.PlannedTicks(Duration, Interval);
             Formula = formula;
+            OutgoingMultiplier = outgoingMultiplier; HasOutgoingType = hasOutgoingType; OutgoingType = outgoingType;
+            Power = power;
         }
     }
 

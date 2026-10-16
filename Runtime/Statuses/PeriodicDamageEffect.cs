@@ -64,8 +64,12 @@ namespace EasyCombat
             if (!IsValid || context.Target == null || context.Definition == null
                 || Unit == StatusDamageUnit.OverDuration && PlannedTicks(context.Definition.Duration, context.Definition.TickInterval) < 1) return false;
             var critical = CriticalChance >= 1 || CriticalChance > 0 && CombatRandom.Value < CriticalChance;
-            return Formula.TryPrepare(context.Source, context.Target, context.Hit, context.HasHit, Unit == StatusDamageUnit.OverDuration,
-                critical, CriticalMultiplier, 1, out formula);
+            if (!Formula.TryPrepare(context.Source, context.Target, context.Hit, context.HasHit, Unit == StatusDamageUnit.OverDuration,
+                critical, CriticalMultiplier, 1, out formula)) return false;
+            var modifiers = context.Source != null ? context.Source.GetComponent<CombatDamageModifiers>() : null;
+            if (modifiers != null && modifiers.isActiveAndEnabled && modifiers.Outgoing != null)
+                formula = formula.Adjust(modifiers.Outgoing,true,context.Origin.Action.Tags);
+            return formula.IsValid;
         }
 
         private DamageAmounts SharedParts(in StatusTickContext context, out bool critical)
@@ -82,7 +86,7 @@ namespace EasyCombat
             critical = formula.IsCritical;
             var scale = Unit == StatusDamageUnit.PerSecond ? context.Interval : Unit == StatusDamageUnit.OverDuration
                 ? context.PlannedTickCount >= 1 ? (float)(1 / context.PlannedTickCount) : 0 : 1;
-            return parts.Scale(scale);
+            return parts.Scale(scale*context.Power);
         }
 
         public float CalculatePerStack(in StatusTickContext context)
@@ -95,9 +99,11 @@ namespace EasyCombat
             if (Unit != StatusDamageUnit.OverDuration && Terms != null)
                 foreach (var term in Terms)
                     if (term.IsLive && term.TryEvaluate(in capture, out var live)) amount += live;
+            amount *= context.OutgoingMultiplier;
             if (!CombatMath.Finite(amount)) return 0;
             amount = Mathf.Max(amount, MinimumAmount);
             if (MaximumAmount > 0) amount = Mathf.Min(amount, MaximumAmount);
+            amount *= context.Power;
             if (Unit == StatusDamageUnit.PerSecond) amount *= context.Interval;
             else if (Unit == StatusDamageUnit.OverDuration)
             {
@@ -120,7 +126,7 @@ namespace EasyCombat
             if (!CombatMath.Positive(amount)) return;
             // Periodic damage is typed but cannot crit or apply on-hit statuses recursively.
             context.Target.ApplyDamage(new DamageInfo(amount, context.Source,
-                context.Target.transform.position, default, DamageType, false, true, origin: context.Origin));
+                context.Target.transform.position, default, context.HasOutgoingType ? context.OutgoingType : DamageType, false, true, origin: context.Origin));
         }
     }
 }

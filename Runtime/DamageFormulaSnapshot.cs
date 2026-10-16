@@ -46,6 +46,18 @@ namespace EasyCombat
             }
         }
         public DamageFormulaSnapshot Scale(float multiplier) { var copy = this; copy.scale *= multiplier; return copy; }
+        internal DamageFormulaSnapshot Adjust(DamageModifierProfile profile, bool periodic, CombatTagSet tags)
+        {
+            if (profile == null) return this;
+            var copy = new DamageFormulaSnapshot(source,IsCritical); copy.scale = scale;
+            for (var i = 0; i < Count; i++)
+            {
+                var term = Get(i);
+                if (!profile.TryAdjust(term.Type,periodic,tags,out var type,out var multiplier)) return default;
+                copy.Add(new PreparedDamageTerm(type,term.Basis,term.Value,term.Stat,term.Multiplier*multiplier,term.Limit));
+            }
+            return copy;
+        }
         public bool TryResolve(float currentHealth, float maximumHealth, out DamageAmounts amounts)
         {
             amounts = default;

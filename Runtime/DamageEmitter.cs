@@ -53,6 +53,7 @@ namespace EasyCombat
             if (attack.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled)) return false;
             direction.Normalize();
             var sourceRoot = OwnerRoot;
+            if (!CombatControl.IsAllowed(sourceRoot.gameObject,CombatRestriction.Attack)) return false;
             if (resolvedOwner != sourceRoot)
             {
                 resolvedOwner = sourceRoot;

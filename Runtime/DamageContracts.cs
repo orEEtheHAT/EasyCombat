@@ -28,17 +28,18 @@ namespace EasyCombat
         public readonly StatusApplication[] OnHitStatuses;
         public readonly DamageAmounts Parts;
         public readonly DamageOrigin Origin;
+        public readonly DamageProtection Protection;
         public readonly StatusApplyPolicy StatusPolicy;
         public readonly DamageFormulaSnapshot Formula;
         public bool HasFormula => Formula.Count > 0;
-        public bool IsValid => HasFormula ? Formula.IsValid : Parts.IsValid && (Amount > 0 || (Amount == 0 && StatusPolicy == StatusApplyPolicy.OnContact
-            && OnHitStatuses != null && OnHitStatuses.Length > 0));
+        public bool IsValid => Protection.IsValid && (HasFormula ? Formula.IsValid : Parts.IsValid && (Amount > 0 || (Amount == 0 && StatusPolicy == StatusApplyPolicy.OnContact
+            && OnHitStatuses != null && OnHitStatuses.Length > 0)));
 
         public DamageInfo(float amount, GameObject source = null, Vector3 point = default, Vector3 direction = default,
             DamageTypeDefinition type = null, bool isCritical = false, bool isPeriodic = false, StatusApplication[] onHitStatuses = null,
-            DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage)
+            DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage, DamageProtection protection = default)
         {
-            Formula = default;
+            Protection = protection; Formula = default;
             Amount = amount;
             Source = source;
             Point = point;
@@ -54,36 +55,58 @@ namespace EasyCombat
 
         public DamageInfo(DamageAmounts parts, GameObject source = null, Vector3 point = default, Vector3 direction = default,
             bool isCritical = false, bool isPeriodic = false, StatusApplication[] onHitStatuses = null,
-            DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage)
+            DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage, DamageProtection protection = default)
         {
-            Formula = default;
+            Protection = protection; Formula = default;
             Parts = parts; Amount = parts.Total; Type = parts.Count == 1 ? parts[0].Type : null;
             Source = source; Point = point; Direction = direction; IsCritical = isCritical; IsPeriodic = isPeriodic;
             OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
         }
         public DamageInfo(DamageFormulaSnapshot formula, GameObject source = null, Vector3 point = default, Vector3 direction = default,
-            bool isPeriodic = false, StatusApplication[] onHitStatuses = null, DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage)
+            bool isPeriodic = false, StatusApplication[] onHitStatuses = null, DamageOrigin origin = default, StatusApplyPolicy statusPolicy = StatusApplyPolicy.AfterDamage, DamageProtection protection = default)
         {
-            Formula = formula; Parts = default; Amount = 0; Type = null;
+            Protection = protection; Formula = formula; Parts = default; Amount = 0; Type = null;
             Source = source; Point = point; Direction = direction; IsCritical = formula.IsCritical; IsPeriodic = isPeriodic;
             OnHitStatuses = onHitStatuses; Origin = origin.CastId == 0 ? DamageOrigin.Capture(source) : origin; StatusPolicy = statusPolicy;
         }
         public bool TryResolve(float currentHealth, float maximumHealth, out DamageInfo resolved)
         {
             resolved = this;
+            if (!Protection.IsValid) return false;
             if (!HasFormula) return IsValid;
             if (!Formula.TryResolve(currentHealth, maximumHealth, out var parts)) return false;
-            resolved = new DamageInfo(parts, Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy);
+            resolved = new DamageInfo(parts, Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
             return true;
         }
         public DamageInfo Scale(float multiplier) => HasFormula
-            ? new DamageInfo(Formula.Scale(multiplier), Source, Point, Direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy)
-            : new DamageInfo(Parts.Scale(multiplier), Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy);
+            ? new DamageInfo(Formula.Scale(multiplier), Source, Point, Direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection)
+            : new DamageInfo(Parts.Scale(multiplier), Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
+        public DamageInfo WithProtection(DamageProtection protection) => HasFormula
+            ? new DamageInfo(Formula,Source,Point,Direction,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection)
+            : new DamageInfo(Parts,Source,Point,Direction,IsCritical,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection);
+        public DamageInfo Adjust(DamageModifierProfile profile)
+        {
+            if (profile == null) return this;
+            if (!profile.IsValid) return default;
+            if (HasFormula)
+            {
+                var adjusted = Formula.Adjust(profile,IsPeriodic,Origin.Action.Tags);
+                return adjusted.IsValid ? new DamageInfo(adjusted,Source,Point,Direction,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,Protection) : default;
+            }
+            var parts = new DamageAmounts();
+            for (var i = 0; i < Parts.Count; i++)
+            {
+                var part = Parts[i];
+                if (!profile.TryAdjust(part.Type,IsPeriodic,Origin.Action.Tags,out var type,out var multiplier)) return default;
+                parts.Add(type,part.Amount*multiplier);
+            }
+            return new DamageInfo(parts,Source,Point,Direction,IsCritical,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,Protection);
+        }
         public DamageInfo WithAmount(float amount) => HasFormula ? throw new InvalidOperationException("Resolve target-dependent damage before replacing its amount.") : Amount > 0 ? Scale(amount / Amount)
-            : new DamageInfo(amount, Source, Point, Direction, Type, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy);
+            : new DamageInfo(amount, Source, Point, Direction, Type, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
         public DamageInfo At(Vector3 point, Vector3 direction) => HasFormula
-            ? new DamageInfo(Formula, Source, point, direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy)
-            : new DamageInfo(Parts, Source, point, direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy);
+            ? new DamageInfo(Formula, Source, point, direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection)
+            : new DamageInfo(Parts, Source, point, direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
     }
 
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]

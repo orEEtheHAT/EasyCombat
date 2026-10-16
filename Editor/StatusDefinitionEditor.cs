@@ -11,6 +11,7 @@ namespace EasyCombat.Editor
         {
             serializedObject.Update();
             Field("DisplayName", "Название"); Field("Color", "Цвет"); Field("Icon", "Иконка");
+            Field("Tags", "Теги / категории"); Field("Restrictions", "Запреты действий");
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Время и повторное наложение", EditorStyles.boldLabel);
             Field("Duration", "Длительность (с)"); Field("TickInterval", "Интервал тика (с)"); Field("Stacking", "Повторное наложение");

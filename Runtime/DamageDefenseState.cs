@@ -91,6 +91,7 @@ namespace EasyCombat
                 var slot = slots[i]; var layer = slot.Layer;
                 if (slot.Stage != stage || !pending[i].Enabled) continue;
                 if (layer == null || !layer.IsValid) return false;
+                if (layer.IsShield ? context.Damage.Protection.BypassShields : context.Damage.Protection.BypassArmor) continue;
                 if (!layer.Accepts(context.Damage)) continue;
                 var reduced = layer.Reduce(in context, amounts, ref pending[i]);
                 if (!reduced.IsValid || reduced.Count != amounts.Count || !Valid(pending[i])) return false;

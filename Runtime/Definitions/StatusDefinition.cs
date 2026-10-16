@@ -34,6 +34,9 @@ namespace EasyCombat
     public sealed class StatusDefinition : ScriptableObject
     {
         public string DisplayName;
+        public CombatTagDefinition[] Tags = Array.Empty<CombatTagDefinition>();
+        public CombatRestriction Restrictions;
+        public bool HasTag(CombatTagDefinition tag) => tag != null && Tags != null && Array.IndexOf(Tags,tag) >= 0;
         public Color Color = new Color(1f, 0.5f, 0.15f);
         public Sprite Icon;
         [Min(0.001f)] public float Duration = 4f;

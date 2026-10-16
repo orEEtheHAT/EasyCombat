@@ -19,6 +19,7 @@ namespace EasyCombat
         public DamageDelivery Delivery = DamageDelivery.Hitscan;
         [Header("Damage")]
         public DamageTypeDefinition DamageType;
+        public DamageProtectionPolicy Protection;
         [FormerlySerializedAs("Damage"), Min(0.001f)] public float MinimumDamage = 25f;
         [Min(0.001f)] public float MaximumDamage = 25f;
         [Tooltip("When nonempty, replaces the legacy single channel above. At most eight independent channels.")]
@@ -99,7 +100,7 @@ namespace EasyCombat
             {
                 if (!Formula.IsValidForAttack || !Formula.TryPrepare(source, null, default, false, false, critical, CriticalMultiplier,
                     outgoingMultiplier, out var prepared, samples, sample, random)) return default;
-                return new DamageInfo(prepared, source, point, direction, false, OnHitStatuses, origin, StatusPolicy);
+                return CombatDamageModifiers.CaptureOutgoing(new DamageInfo(prepared, source, point, direction, false, OnHitStatuses, origin, StatusPolicy, new DamageProtection(Protection)));
             }
             var parts = new DamageAmounts();
             for (var i = 0; i < ChannelCount; i++)
@@ -109,8 +110,8 @@ namespace EasyCombat
                 parts.Add(channel.Type, Mathf.Lerp(channel.Minimum, channel.Maximum, Mathf.Clamp01(value)) * multiplier);
             }
             if (origin.CastId == 0) origin = DamageOrigin.Capture(source, this);
-            return new DamageInfo(parts, source, point, direction, critical, false, OnHitStatuses, origin,
-                StatusOnly ? StatusApplyPolicy.OnContact : StatusPolicy);
+            return CombatDamageModifiers.CaptureOutgoing(new DamageInfo(parts, source, point, direction, critical, false, OnHitStatuses, origin,
+                StatusOnly ? StatusApplyPolicy.OnContact : StatusPolicy, new DamageProtection(Protection)));
         }
 
         public int ChannelCount => StatusOnly ? 0 : UsesFormula ? Formula.Terms?.Length ?? 0 : DamageChannels != null && DamageChannels.Length > 0 ? DamageChannels.Length : 1;
@@ -136,7 +137,7 @@ namespace EasyCombat
                     && CombatMath.Finite(TotalMaximum * CriticalMultiplier);
             }
         }
-        public bool IsValid => (Tags == null || Tags.Length <= CombatTagSet.Capacity) && ValidPayload && CombatMath.Positive(Range)
+        public bool IsValid => (Protection == null || Protection.IsValid) && (Tags == null || Tags.Length <= CombatTagSet.Capacity) && ValidPayload && CombatMath.Positive(Range)
             && CombatMath.Finite(RoundsPerMinute) && RoundsPerMinute >= 0f
             && CombatMath.Finite(CriticalChance) && CriticalChance >= 0f && CriticalChance <= 1f
             && CombatMath.Finite(CriticalMultiplier) && CriticalMultiplier >= 1f

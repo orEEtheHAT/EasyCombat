@@ -15,5 +15,9 @@
 - Isolated Health observers so a presentation exception cannot suppress death or later callbacks.
 - Routed combat random rolls through injectable seeded RNG; added an explicit clock for cooldowns and journal records.
 - Added package integrity CI and published the source to orEEtheHAT/EasyCombat.
+- Added tagged action ancestry and deferred reactions with cooldowns, life-identity checks and bounded chains.
+- Added damage modification/type conversion profiles and captured armor/shield/resistance bypass policies.
+- Added status lifecycle reasons, category dispels, exact stack consumption and captured duration/power resistance.
+- Added composable action restrictions and optional ECM2 knockback/pull integration.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

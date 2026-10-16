@@ -121,6 +121,13 @@ namespace EasyCombat
                 var denied = rules.Check(this, damage);
                 if (denied != DamageRejection.None) return Reject(damage, denied);
             }
+            var damageModifiers = GetComponent<CombatDamageModifiers>();
+            if (damageModifiers != null && damageModifiers.isActiveAndEnabled && damageModifiers.Incoming != null)
+            {
+                damage = damage.Adjust(damageModifiers.Incoming);
+                if (!damage.IsValid && !(damage.Amount == 0 && damage.Parts.Count > 0 && damage.Parts.IsValid))
+                    return Reject(damage,DamageRejection.InvalidAmount);
+            }
             if (damage.HasFormula)
             {
                 if (!damage.TryResolve(currentHealth, maximumHealth, out var resolved)) return Reject(damage, DamageRejection.InvalidAmount);
@@ -139,7 +146,7 @@ namespace EasyCombat
             for (var i = 0; i < incoming.Count; i++)
             {
                 var part = incoming[i];
-                var reduction = GetResistance(part.Type);
+                var reduction = damage.Protection.ApplyResistance(GetResistance(part.Type));
                 reductions.Add(part.Type, reduction);
                 effective.Add(part.Type, part.Amount * (1f - reduction));
             }

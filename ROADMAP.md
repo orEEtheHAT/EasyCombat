@@ -17,8 +17,8 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 
 ## 2. Stats and damage modifiers
 - [x] Owned modifier handles; flat/additive/multiplicative operations and removal.
-- [ ] Conditional outgoing/incoming modifiers and tag filters.
-- [ ] Penetration, type conversion and explicit defense bypass policies.
+- [x] Conditional outgoing/incoming modifiers and tag filters; independent periodic stacks capture outgoing changes.
+- [x] Penetration, whole-channel type conversion and explicit defense bypass policies.
 
 ## 3. Reaction construction
 - [x] Event → conditions → chance → target selection → actions through SOs.
@@ -31,13 +31,13 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Explicit overheal and lifesteal bases (SO calculation; automatic lifesteal reaction follows in section 3).
 
 ## 5. Status lifecycle
-- [ ] Application/tick/stack/refresh/expiration/removal events with reasons.
-- [ ] Categories, selective cleansing and chance/duration/power resistance.
+- [x] Application/tick/stack/refresh/expiration/removal events with reasons.
+- [x] Categories, selective cleansing and chance/duration/power resistance.
 - [ ] Status interactions and consumption with atomic execution.
 
 ## 6. Control adapters
-- [ ] Overlapping action restrictions, stun/root/silence/disarm.
-- [ ] Knockback/pull intent and an ECM2 adapter without mandatory dependency.
+- [x] Overlapping action restrictions, stun/root/silence/disarm.
+- [x] Knockback/pull intent and an ECM2 adapter without mandatory dependency.
 
 ## 7. Life states
 - [ ] Downed/dead/revived, non-lethal damage and minimum-health rules.
