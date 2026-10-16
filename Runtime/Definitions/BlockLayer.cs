@@ -20,7 +20,7 @@ namespace EasyCombat
                 if (!CombatMath.Finite(direction) || direction.sqrMagnitude < .000001f
                     || Vector3.Dot(context.Target.transform.forward, -direction.normalized) < Mathf.Cos(Arc * .5f * Mathf.Deg2Rad)) return incoming;
             }
-            return Chance >= 1 || Random.value < Chance ? ScaleMatching(incoming, 1 - Reduction) : incoming;
+            return Chance >= 1 || CombatRandom.Value < Chance ? ScaleMatching(incoming, 1 - Reduction) : incoming;
         }
     }
 }

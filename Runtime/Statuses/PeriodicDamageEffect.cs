@@ -63,7 +63,7 @@ namespace EasyCombat
             if (Formula == null) return TryCapture(in context, out value);
             if (!IsValid || context.Target == null || context.Definition == null
                 || Unit == StatusDamageUnit.OverDuration && PlannedTicks(context.Definition.Duration, context.Definition.TickInterval) < 1) return false;
-            var critical = CriticalChance >= 1 || CriticalChance > 0 && UnityEngine.Random.value < CriticalChance;
+            var critical = CriticalChance >= 1 || CriticalChance > 0 && CombatRandom.Value < CriticalChance;
             return Formula.TryPrepare(context.Source, context.Target, context.Hit, context.HasHit, Unit == StatusDamageUnit.OverDuration,
                 critical, CriticalMultiplier, 1, out formula);
         }

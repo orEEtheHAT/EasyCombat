@@ -10,6 +10,10 @@ namespace EasyCombat
         public ResistanceProfile Resistances;
         public HitRulesDefinition HitRules;
         public DefenseProfile Defense;
+        [Header("Healing")]
+        public bool PreventHealing;
+        [Tooltip("Optional absolute multiplier from this actor's CombatStats. Missing/invalid stats reject healing.")]
+        public CombatStatDefinition ReceivedHealingMultiplierStat;
         [Tooltip("Independent of damage resistance. These statuses cannot be applied to this actor.")]
         public StatusDefinition[] StatusImmunities = System.Array.Empty<StatusDefinition>();
         public bool IsValid => CombatMath.Positive(MaximumHealth) && (HitRules == null || HitRules.IsValid) && (Defense == null || Defense.IsValid);

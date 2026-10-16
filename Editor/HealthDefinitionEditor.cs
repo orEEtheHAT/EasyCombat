@@ -15,6 +15,8 @@ namespace EasyCombat.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("HitRules"), new GUIContent("Общие правила попадания"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Defense"), new GUIContent("Слои защиты"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("StatusImmunities"), new GUIContent("Иммунитет к статусам"), true);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("PreventHealing"), new GUIContent("Запретить лечение"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("ReceivedHealingMultiplierStat"), new GUIContent("Множитель входящего лечения"));
             serializedObject.ApplyModifiedProperties();
             EditorGUILayout.HelpBox("Один профиль резистов содержит любое число разных типов урона. Защита от огня и защита от яда рассчитываются независимо. Иммунитет к статусу — отдельная настройка.", MessageType.Info);
             EditorGUILayout.HelpBox("Пустые правила и защита сохраняют базовое поведение. Щиты и таймеры принадлежат персонажу; SO общие. Порядок слоёв задаётся профилем защиты.", MessageType.None);

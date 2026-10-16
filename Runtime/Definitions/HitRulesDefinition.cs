@@ -47,7 +47,7 @@ namespace EasyCombat
             if (relationship != DamageRejection.None) return relationship;
             if (Invulnerable) return DamageRejection.Invulnerable;
             if ((!damage.IsPeriodic || DodgePeriodic) && DodgeChance > 0
-                && (DodgeChance >= 1 || Random.value < DodgeChance)) return DamageRejection.Dodged;
+                && (DodgeChance >= 1 || CombatRandom.Value < DodgeChance)) return DamageRejection.Dodged;
             return DamageRejection.None;
         }
     }

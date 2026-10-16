@@ -8,5 +8,12 @@
 - Removed mandatory ECM2, PrimeTween and Easy Feedbacks references from runtime/editor assemblies.
 - Preserved the six-target, twelve-weapon development sandbox and its authored definitions.
 - Migrated the existing 276-test suite without failures.
+- Added a standalone Basic Arena sample and validated a clean-project WebGL build in the browser.
+- Added owned flat/additive/multiplicative stat modifiers, immutable applied SO sets and optional maximum-health binding.
+- Added generic resources, atomic costs, regeneration and explicit stat-driven capacity refresh.
+- Added healing formulas/results, criticals, incoming/outgoing modifiers, restrictions and optional shield overheal.
+- Isolated Health observers so a presentation exception cannot suppress death or later callbacks.
+- Routed combat random rolls through injectable seeded RNG; added an explicit clock for cooldowns and journal records.
+- Added package integrity CI and published the source to orEEtheHAT/EasyCombat.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

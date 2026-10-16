@@ -24,7 +24,7 @@ namespace EasyCombat
         [SerializeField] private DamageAreaPool areaPool;
         private readonly AttackTrace trace = new AttackTrace();
         private readonly AreaDamageQuery areaQuery = new AreaDamageQuery();
-        private float nextShotTime = float.NegativeInfinity;
+        private double nextShotTime = double.NegativeInfinity;
         private Transform resolvedOwner;
         private StatusController ownerStatuses;
         private Action<DamageImpact> impactCallback;
@@ -47,7 +47,7 @@ namespace EasyCombat
 
         private bool Fire(Vector3 origin, Vector3 direction)
         {
-            if (!isActiveAndEnabled || attack == null || !attack.IsValid || Time.time < nextShotTime
+            if (!isActiveAndEnabled || attack == null || !attack.IsValid || CombatClock.Now < nextShotTime
                 || !CombatMath.Finite(origin) || !CombatMath.Finite(direction) || direction.sqrMagnitude < 0.000001f) return false;
             if (attack.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled)) return false;
             direction.Normalize();
@@ -68,7 +68,7 @@ namespace EasyCombat
             if (impactCallback == null) impactCallback = ReportImpact;
             var end = origin + direction * attack.Range;
             // Reserve cooldown before invoking any damage/event callbacks.
-            nextShotTime = Time.time + attack.Cooldown / rateMultiplier;
+            nextShotTime = CombatClock.Now + attack.Cooldown / rateMultiplier;
             if (delivery == DamageDelivery.Area)
             {
                 end = origin;
@@ -78,7 +78,7 @@ namespace EasyCombat
             {
                 if (projectilePool == null || projectilePool.Spawn(origin, direction, damage, sourceRoot, attack, impactCallback, areaPool) == null)
                 {
-                    nextShotTime = float.NegativeInfinity;
+                    nextShotTime = double.NegativeInfinity;
                     return false;
                 }
             }
@@ -93,7 +93,7 @@ namespace EasyCombat
         }
 
         private void ReportImpact(DamageImpact impact) => Impacted?.Invoke(impact);
-        public void ResetCooldown() => nextShotTime = float.NegativeInfinity;
+        public void ResetCooldown() => nextShotTime = double.NegativeInfinity;
         public void RefreshOwner() => resolvedOwner = null;
     }
 }

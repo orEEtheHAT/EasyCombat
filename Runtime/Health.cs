@@ -16,7 +16,7 @@ namespace EasyCombat
         [SerializeField] private DefenseProfile defenseProfile;
         private DamageDefenseState defense;
         private float manualInvulnerability, hitInvulnerability;
-        private bool invulnerable, applyingDamage;
+        private bool invulnerable, applyingDamage, applyingHealing;
         internal int DefenseSchedulerIndex = -1;
         private float currentHealth;
         private bool initialized;
@@ -41,11 +41,18 @@ namespace EasyCombat
         public float Normalized => Current / Maximum;
         public bool IsAlive => Current > 0f;
 
-        public event Action<HealthChange> Changed;
-        public event Action<DamageResult> Damaged;
-        public event Action<Health> Died;
-        public event Action<Health> Revived;
-        public event Action<Health> DefenseChanged;
+        private readonly CombatSignal<HealthChange> changedSignal = new CombatSignal<HealthChange>();
+        public event Action<HealthChange> Changed { add => changedSignal.Add(value); remove => changedSignal.Remove(value); }
+        private readonly CombatSignal<DamageResult> damagedSignal = new CombatSignal<DamageResult>();
+        public event Action<DamageResult> Damaged { add => damagedSignal.Add(value); remove => damagedSignal.Remove(value); }
+        private readonly CombatSignal<Health> diedSignal = new CombatSignal<Health>();
+        public event Action<Health> Died { add => diedSignal.Add(value); remove => diedSignal.Remove(value); }
+        private readonly CombatSignal<Health> revivedSignal = new CombatSignal<Health>();
+        public event Action<Health> Revived { add => revivedSignal.Add(value); remove => revivedSignal.Remove(value); }
+        private readonly CombatSignal<Health> defenseChangedSignal = new CombatSignal<Health>();
+        public event Action<Health> DefenseChanged { add => defenseChangedSignal.Add(value); remove => defenseChangedSignal.Remove(value); }
+        private readonly CombatSignal<HealingResult> healedSignal = new CombatSignal<HealingResult>();
+        public event Action<HealingResult> Healed { add => healedSignal.Add(value); remove => healedSignal.Remove(value); }
 
         private void Awake() => EnsureInitialized();
         private void OnEnable() { EnsureInitialized(); ReconcileDefenseScheduler(); }
@@ -75,7 +82,7 @@ namespace EasyCombat
             manualInvulnerability = hitInvulnerability = 0;
             SetMaximum(profile.MaximumHealth);
             if (resetHealth) ResetToFull();
-            else { ReconcileDefenseScheduler(); DefenseChanged?.Invoke(this); }
+            else { ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); }
         }
 
         public float GetResistance(DamageTypeDefinition type)
@@ -184,12 +191,12 @@ namespace EasyCombat
             var result = new DamageResult(damage, applied, killed, rejection, breakdown, effectiveAmount, appliedStatuses,
                 healthDamage, shieldAbsorbed, armorPrevented, resistanceDelta, defenses);
             CombatEvents.Publish(identity, result);
-            if (shieldAbsorbed > 0) DefenseChanged?.Invoke(this);
+            if (shieldAbsorbed > 0) defenseChangedSignal.Publish(this);
             if (applied > 0)
             {
-                Changed?.Invoke(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Damage));
-                Damaged?.Invoke(result);
-                if (killed) Died?.Invoke(this);
+                changedSignal.Publish(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Damage));
+                damagedSignal.Publish(result);
+                if (killed) diedSignal.Publish(this);
             }
             return result;
         }
@@ -208,15 +215,44 @@ namespace EasyCombat
 
         /// <summary>Healing never revives. Use ResetToFull or RestoreState explicitly.</summary>
         public float Heal(float amount)
+            => ApplyHealing(new HealingInfo(amount)).AppliedAmount;
+
+        public HealingResult ApplyHealing(HealingInfo healing)
         {
             EnsureInitialized();
-            if (!CombatMath.Positive(amount) || !isActiveAndEnabled || !IsAlive) return 0f;
-            var previous = currentHealth;
-            currentHealth += Mathf.Min(amount, maximumHealth - currentHealth);
-            var applied = currentHealth - previous;
-            if (applied > 0f)
-                Changed?.Invoke(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Healing));
-            return applied;
+            if (applyingHealing) return new HealingResult(healing,rejection:HealingRejection.Reentrant);
+            if (!healing.IsValid) return new HealingResult(healing,rejection:HealingRejection.Invalid);
+            if (!isActiveAndEnabled) return new HealingResult(healing,rejection:HealingRejection.Disabled);
+            if (!IsAlive) return new HealingResult(healing,rejection:HealingRejection.Dead);
+            if (definition != null && definition.PreventHealing) return new HealingResult(healing,rejection:HealingRejection.Restricted);
+            double amount = healing.Amount;
+            if (definition != null && definition.ReceivedHealingMultiplierStat != null)
+            {
+                var stats = GetComponent<CombatStats>();
+                if (stats == null || !stats.TryGetValue(definition.ReceivedHealingMultiplierStat,out var multiplier))
+                    return new HealingResult(healing,rejection:HealingRejection.Invalid);
+                amount *= multiplier;
+            }
+            if (healing.Maximum > 0) amount = Math.Min(amount,healing.Maximum);
+            if (double.IsNaN(amount) || double.IsInfinity(amount) || amount > float.MaxValue) return new HealingResult(healing,rejection:HealingRejection.Invalid);
+            applyingHealing = true;
+            try
+            {
+                var previous = currentHealth;
+                currentHealth += Mathf.Min((float)amount, maximumHealth-currentHealth);
+                var applied = currentHealth-previous;
+                var excess = Mathf.Max(0,(float)amount-applied);
+                // Commit both HP and shield before any notification.
+                var shield = healing.Overheal == OverhealPolicy.RestoreShield && defense != null
+                    ? defense.RestoreShield(healing.ShieldIndex,excess) : 0;
+                if (shield > 0) ReconcileDefenseScheduler();
+                var result = new HealingResult(healing,applied,shield,excess-shield);
+                if (applied > 0) changedSignal.Publish(new HealthChange(previous,currentHealth,maximumHealth,HealthChangeReason.Healing));
+                if (shield > 0) defenseChangedSignal.Publish(this);
+                healedSignal.Publish(result);
+                return result;
+            }
+            finally { applyingHealing = false; }
         }
 
         public void SetMaximum(float maximum, bool preserveRatio = true)
@@ -226,7 +262,7 @@ namespace EasyCombat
             var previous = currentHealth;
             currentHealth = preserveRatio ? (currentHealth / maximumHealth) * maximum : Mathf.Min(currentHealth, maximum);
             maximumHealth = maximum;
-            Changed?.Invoke(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.MaximumChanged));
+            changedSignal.Publish(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.MaximumChanged));
         }
 
         /// <summary>Explicit spawn/pool reset. OnEnable deliberately preserves health.</summary>
@@ -237,9 +273,9 @@ namespace EasyCombat
             currentHealth = maximumHealth;
             identity = new CombatActorIdentity(CombatEvents.NextId(), identity.Name);
             defense?.Reset(); manualInvulnerability = hitInvulnerability = 0; invulnerable = false;
-            ReconcileDefenseScheduler(); DefenseChanged?.Invoke(this);
-            Changed?.Invoke(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Reset));
-            if (previous == 0f) Revived?.Invoke(this);
+            ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this);
+            changedSignal.Publish(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Reset));
+            if (previous == 0f) revivedSignal.Publish(this);
         }
 
         public HealthSnapshot CaptureState() => new HealthSnapshot(Maximum, Current);
@@ -254,8 +290,8 @@ namespace EasyCombat
             maximumHealth = snapshot.Maximum;
             currentHealth = Mathf.Clamp(snapshot.Current, 0f, maximumHealth);
             ReconcileDefenseScheduler();
-            Changed?.Invoke(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Restore));
-            if (previous == 0f && currentHealth > 0f) Revived?.Invoke(this);
+            changedSignal.Publish(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.Restore));
+            if (previous == 0f && currentHealth > 0f) revivedSignal.Publish(this);
             return true;
         }
 
@@ -268,12 +304,12 @@ namespace EasyCombat
         public bool SetDefenseLayerEnabled(int index, bool enabled)
         {
             EnsureInitialized(); if (defense == null || !defense.SetEnabled(index, enabled)) return false;
-            ReconcileDefenseScheduler(); DefenseChanged?.Invoke(this); return true;
+            ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); return true;
         }
         public float RestoreShield(int index, float amount)
         {
             EnsureInitialized(); var restored = defense != null ? defense.RestoreShield(index, amount) : 0;
-            if (restored > 0) { ReconcileDefenseScheduler(); DefenseChanged?.Invoke(this); } return restored;
+            if (restored > 0) { ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); } return restored;
         }
         internal bool NeedsDefenseTick => isActiveAndEnabled && IsAlive
             && (manualInvulnerability > 0 || hitInvulnerability > 0 || defense != null && defense.NeedsAdvance);
@@ -285,7 +321,7 @@ namespace EasyCombat
             manualInvulnerability = Mathf.Max(0, manualInvulnerability - deltaTime);
             hitInvulnerability = Mathf.Max(0, hitInvulnerability - deltaTime);
             var changed = defense != null && defense.Advance(deltaTime);
-            ReconcileDefenseScheduler(); if (changed) DefenseChanged?.Invoke(this);
+            ReconcileDefenseScheduler(); if (changed) defenseChangedSignal.Publish(this);
         }
     }
 }

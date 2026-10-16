@@ -12,7 +12,7 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 
 ## 1. Hit context and execution contracts
 - [ ] Tags, root/parent action identity and origin classification.
-- [ ] Controlled RNG and explicit simulation clock.
+- [x] Controlled RNG and explicit clock for rolls, cooldowns and journal; timers also expose manual advance APIs.
 - [ ] Deferred reactions, bounded chains and observer isolation.
 
 ## 2. Stats and damage modifiers
@@ -26,9 +26,9 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [ ] Lifesteal, reflection, counterattack, kill explosions and resource restoration examples.
 
 ## 4. Resources and healing
-- [ ] Generic bounded resources and transactional spend/restore.
-- [ ] Healing requests/results, modifiers, restrictions and optional criticals.
-- [ ] Explicit overheal and lifesteal bases.
+- [x] Generic bounded resources and transactional spend/restore.
+- [x] Healing requests/results, modifiers, restrictions and optional criticals.
+- [x] Explicit overheal and lifesteal bases (SO calculation; automatic lifesteal reaction follows in section 3).
 
 ## 5. Status lifecycle
 - [ ] Application/tick/stack/refresh/expiration/removal events with reasons.

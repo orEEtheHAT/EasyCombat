@@ -63,7 +63,7 @@ namespace EasyCombat
             foreach (var term in Terms)
             {
                 var index = snapshot.Count;
-                var roll = random ? UnityEngine.Random.value : samples.Length > index ? samples[index] : sample;
+                var roll = random ? CombatRandom.Value : samples.Length > index ? samples[index] : sample;
                 var value = Mathf.Lerp(term.Minimum, term.Maximum, Mathf.Clamp01(roll));
                 var basis = term.Basis;
                 var shouldCapture = basis == StatusDamageBasis.Fixed || basis == StatusDamageBasis.TriggeringHit

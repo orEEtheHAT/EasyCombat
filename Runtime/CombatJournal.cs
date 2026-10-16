@@ -83,7 +83,7 @@ namespace EasyCombat
         {
             var snapshot = listeners;
             if (snapshot.Length == 0) return;
-            var record = new CombatRecord(NextId(), UnityEngine.Time.timeAsDouble, target, result);
+            var record = new CombatRecord(NextId(), CombatClock.Now, target, result);
             for (var i = 0; i < snapshot.Length; i++)
                 try { snapshot[i](record); }
                 catch (Exception exception) { Debug.LogException(exception); } // Observability must not cancel death/gameplay events.

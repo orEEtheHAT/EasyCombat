@@ -324,7 +324,7 @@ namespace EasyCombat
             for (var i = 0; i < applications.Length; i++)
             {
                 var application = applications[i];
-                if (application.Chance >= 1f || (application.Chance > 0f && UnityEngine.Random.value < application.Chance))
+                if (application.Chance >= 1f || (application.Chance > 0f && CombatRandom.Value < application.Chance))
                     if (ApplyFromHit(application.Status, in hit)) applied++;
             }
             return applied;

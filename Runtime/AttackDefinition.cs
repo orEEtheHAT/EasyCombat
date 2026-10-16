@@ -85,7 +85,7 @@ namespace EasyCombat
             return Roll(source, point, direction, damageSamples, 0, criticalSample, outgoingMultiplier, false, default);
         }
         public DamageInfo RollRandom(GameObject source, Vector3 point, Vector3 direction, float outgoingMultiplier = 1f, DamageOrigin origin = default)
-            => Roll(source, point, direction, default, 0, UnityEngine.Random.value, outgoingMultiplier, true, origin);
+            => Roll(source, point, direction, default, 0, CombatRandom.Value, outgoingMultiplier, true, origin);
 
         private DamageInfo Roll(GameObject source, Vector3 point, Vector3 direction, ReadOnlySpan<float> samples,
             float sample, float criticalSample, float outgoingMultiplier, bool random, DamageOrigin origin)
@@ -104,7 +104,7 @@ namespace EasyCombat
             for (var i = 0; i < ChannelCount; i++)
             {
                 var channel = GetChannel(i);
-                var value = random ? UnityEngine.Random.value : samples.Length > 0 ? samples[i] : sample;
+                var value = random ? CombatRandom.Value : samples.Length > 0 ? samples[i] : sample;
                 parts.Add(channel.Type, Mathf.Lerp(channel.Minimum, channel.Maximum, Mathf.Clamp01(value)) * multiplier);
             }
             if (origin.CastId == 0) origin = DamageOrigin.Capture(source, this);
