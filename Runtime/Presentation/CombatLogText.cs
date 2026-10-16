@@ -22,7 +22,7 @@ namespace EasyCombat.Presentation
             var result = record.Result;
             var outcome = result.HitApplied ? $"−{result.AppliedAmount:0.##} HP" + (result.ShieldAbsorbed > 0 ? $" · щит −{result.ShieldAbsorbed:0.##}" : "")
                 : result.StatusesApplied > 0 ? $"статусов: {result.StatusesApplied}" : Reason(result.Rejection);
-            return $"{record.Target.Name}: {outcome}{(result.Damage.IsCritical ? " · крит" : "")}{(result.Killed ? " · смерть" : "")}\n"
+            return $"{record.Target.Name}: {outcome}{(result.Damage.IsCritical ? " · крит" : "")}{(result.Killed ? " · смерть" : result.Downed ? " · повержен" : "")}\n"
                 + (result.Damage.Origin.StatusName ?? result.Damage.Origin.AttackName ?? "Окружение");
         }
         public static string Format(CombatRecord record)
@@ -36,6 +36,7 @@ namespace EasyCombat.Presentation
             if (result.Damage.IsCritical) text.Append("  КРИТ");
             if (result.Damage.IsPeriodic) text.Append("  ТИК");
             if (result.Killed) text.Append("  УБИЙСТВО");
+            if (result.Downed) text.Append("  ПОВЕРЖЕН");
             if (result.Rejection != DamageRejection.None) text.Append("  [").Append(Reason(result.Rejection)).Append(']');
             text.Append('\n').Append(origin.AttackName ?? "Прямое воздействие");
             if (!string.IsNullOrEmpty(origin.StatusName)) text.Append(" / ").Append(origin.StatusName);
@@ -60,6 +61,7 @@ namespace EasyCombat.Presentation
                 if (layer.IsShield) text.Append(" · осталось ").Append(layer.Remaining.ToString("0.##"));
             }
             if (result.Overkill > 0) text.Append("  ·  лишний урон: ").Append(result.Overkill.ToString("0.##"));
+            if(result.LifePrevented>0) text.Append("  ·  защита жизни: ").Append(result.LifePrevented.ToString("0.##"));
             return text.ToString();
         }
     }

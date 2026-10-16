@@ -12,6 +12,9 @@ namespace EasyCombat.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("BypassArmor"),new GUIContent("Обойти броню / блок"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("BypassShields"),new GUIContent("Обойти щиты"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("BypassResistance"),new GUIContent("Обойти резисты и уязвимости"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("NonLethal"),new GUIContent("Несмертельный урон"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("IgnoreMinimumHealth"),new GUIContent("Игнорировать нижний предел HP"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("PreventDownedState"),new GUIContent("Добить / миновать падение"));
             if (!serializedObject.FindProperty("BypassResistance").boolValue)
             {
                 Percent("PercentResistancePenetration","Доля пробитого резиста, %");

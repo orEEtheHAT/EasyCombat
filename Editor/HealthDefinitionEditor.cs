@@ -14,6 +14,7 @@ namespace EasyCombat.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Resistances"), new GUIContent("Профиль резистов"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("HitRules"), new GUIContent("Общие правила попадания"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("Defense"), new GUIContent("Слои защиты"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("LifeRules"), new GUIContent("Смерть / падение / возрождение"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("StatusImmunities"), new GUIContent("Иммунитет к статусам"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("StatusDefense"), new GUIContent("Защита от статусов"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("PreventHealing"), new GUIContent("Запретить лечение"));

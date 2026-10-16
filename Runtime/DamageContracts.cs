@@ -12,7 +12,7 @@ namespace EasyCombat
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
     public enum DamageRejection { None, InvalidAmount, Dead, Disabled, NoReceiver, Immune, NoEffect, Self, Ally, Enemy, Neutral, Environment, Invulnerable, Dodged, Blocked, InvalidDefense, Reentrant }
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public enum HealthChangeReason { Damage, Healing, Reset, Restore, MaximumChanged }
+    public enum HealthChangeReason { Damage, Healing, Reset, Restore, MaximumChanged, Revive }
 
     /// <summary>Immutable description shared by rays, projectiles, melee and environmental damage.</summary>
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
@@ -115,23 +115,27 @@ namespace EasyCombat
         public readonly DamageInfo Damage;
         public readonly float AppliedAmount;
         public readonly bool Killed;
+        public readonly bool Downed;
         public readonly DamageRejection Rejection;
         public readonly DamageBreakdown Breakdown;
         public readonly float EffectiveAmount;
         public readonly int StatusesApplied;
         public readonly float HealthDamage, ShieldAbsorbed, ArmorPrevented, ResistanceDelta;
+        public readonly float LifePrevented;
         public readonly DefenseBreakdown Defenses;
-        public float Overkill => Mathf.Max(0, HealthDamage - AppliedAmount);
+        public float Overkill => Mathf.Max(0, HealthDamage - AppliedAmount - LifePrevented);
         public bool Applied => Rejection == DamageRejection.None && AppliedAmount > 0f;
         public bool HitApplied => Applied || Rejection == DamageRejection.None && ShieldAbsorbed > 0;
 
         public DamageResult(DamageInfo damage, float appliedAmount, bool killed, DamageRejection rejection = DamageRejection.None,
             DamageBreakdown breakdown = default, float effectiveAmount = 0, int statusesApplied = 0,
-            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, DefenseBreakdown defenses = default)
+            float? healthDamage = null, float shieldAbsorbed = 0, float armorPrevented = 0, float? resistanceDelta = null, DefenseBreakdown defenses = default, bool downed = false, float lifePrevented = 0)
         {
             Damage = damage;
             AppliedAmount = appliedAmount;
             Killed = killed;
+            Downed = downed;
+            LifePrevented = lifePrevented;
             Rejection = rejection;
             Breakdown = breakdown; EffectiveAmount = effectiveAmount; StatusesApplied = statusesApplied;
             HealthDamage = healthDamage ?? effectiveAmount; ShieldAbsorbed = shieldAbsorbed; ArmorPrevented = armorPrevented;
@@ -166,11 +170,13 @@ namespace EasyCombat
         public int Version;
         public float Maximum;
         public float Current;
-        public HealthSnapshot(float maximum, float current)
+        public CombatLifeState LifeState;
+        public HealthSnapshot(float maximum, float current, CombatLifeState? lifeState = null)
         {
-            Version = 1;
+            Version = 2;
             Maximum = maximum;
             Current = current;
+            LifeState = lifeState ?? (current>0 ? CombatLifeState.Alive : CombatLifeState.Dead);
         }
     }
 

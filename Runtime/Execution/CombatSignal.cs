@@ -25,7 +25,10 @@ namespace EasyCombat
             {
                 var snapshot = listeners;
                 for (var i = 0; i < snapshot.Length; i++)
+                {
+                    if(snapshot[i].Target is UnityEngine.Object subscriber && subscriber==null) { Remove(snapshot[i]); continue; }
                     try { snapshot[i](value); } catch (Exception exception) { Debug.LogException(exception); }
+                }
             }
             finally { depth--; }
         }
@@ -46,7 +49,15 @@ namespace EasyCombat
         public void Publish()
         {
             if (depth >= 32) return; depth++;
-            try { var snapshot = listeners; for (var i=0;i<snapshot.Length;i++) try { snapshot[i](); } catch (Exception e) { Debug.LogException(e); } }
+            try
+            {
+                var snapshot = listeners;
+                for (var i=0;i<snapshot.Length;i++)
+                {
+                    if(snapshot[i].Target is UnityEngine.Object subscriber && subscriber==null) { Remove(snapshot[i]); continue; }
+                    try { snapshot[i](); } catch (Exception e) { Debug.LogException(e); }
+                }
+            }
             finally { depth--; }
         }
     }

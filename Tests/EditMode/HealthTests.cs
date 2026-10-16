@@ -79,7 +79,7 @@ namespace EasyCombat.Tests
             health.ApplyDamage(new DamageInfo(10));
             Assert.That(health.RestoreState(new HealthSnapshot(200, float.NaN)), Is.False);
             Assert.That(health.RestoreState(new HealthSnapshot(-20, 5)), Is.False);
-            var future = new HealthSnapshot(200, 30) { Version = 2 };
+            var future = new HealthSnapshot(200, 30) { Version = 999 };
             Assert.That(health.RestoreState(future), Is.False);
             Assert.That(health.Maximum, Is.EqualTo(100));
             Assert.That(health.Current, Is.EqualTo(90));

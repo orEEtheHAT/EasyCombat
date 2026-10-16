@@ -12,6 +12,7 @@ namespace EasyCombat.Integrations
         private Character character;
         private StatusController statuses;
         private CombatControl control;
+        private Health health;
         private float baseWalkSpeed,baseCrouchSpeed,baseFlySpeed,baseSwimSpeed,baseRotationRate;
         private bool baseCanJump;
         private void Awake()
@@ -22,18 +23,21 @@ namespace EasyCombat.Integrations
             baseCrouchSpeed=character.maxWalkSpeedCrouched; baseFlySpeed=character.maxFlySpeed; baseSwimSpeed=character.maxSwimSpeed;
             baseCanJump=character.canEverJump;
             baseRotationRate=character.rotationRate;
-            control=GetComponent<CombatControl>();
+            control=GetComponent<CombatControl>(); health=GetComponent<Health>();
         }
-        private void OnEnable() { statuses.Changed += Refresh; if(control!=null) control.Changed+=ControlChanged; Refresh(); }
+        private void OnEnable() { statuses.Changed += Refresh; if(control!=null) control.Changed+=ControlChanged; if(health!=null) { health.Downed+=LifeChanged; health.Died+=LifeChanged; health.Revived+=LifeChanged; health.Changed+=HealthChanged; } Refresh(); }
         private void OnDisable()
         {
             if (statuses != null) statuses.Changed -= Refresh;
             if (control!=null) control.Changed-=ControlChanged;
+            if(health!=null) { health.Downed-=LifeChanged; health.Died-=LifeChanged; health.Revived-=LifeChanged; health.Changed-=HealthChanged; }
             if (character != null)
             { character.maxWalkSpeed=baseWalkSpeed; character.maxWalkSpeedCrouched=baseCrouchSpeed; character.maxFlySpeed=baseFlySpeed; character.maxSwimSpeed=baseSwimSpeed; character.canEverJump=baseCanJump; character.rotationRate=baseRotationRate; }
         }
         public void SetBaseWalkSpeed(float speed) { baseWalkSpeed = Mathf.Max(0f, speed); Refresh(); }
         private void ControlChanged(CombatRestriction _) => Refresh();
+        private void LifeChanged(Health _) => Refresh();
+        private void HealthChanged(HealthChange change) { if(change.Reason==HealthChangeReason.Reset || change.Reason==HealthChangeReason.Restore) Refresh(); }
         private void Refresh()
         {
             var allowed=CombatControl.IsAllowed(gameObject,CombatRestriction.Move);

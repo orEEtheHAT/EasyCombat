@@ -19,5 +19,9 @@
 - Added damage modification/type conversion profiles and captured armor/shield/resistance bypass policies.
 - Added status lifecycle reasons, category dispels, exact stack consumption and captured duration/power resistance.
 - Added composable action restrictions and optional ECM2 knockback/pull integration.
+- Added atomic status exchanges that preserve captured stack state on failure.
+- Added optional downed/finishing/revive behavior, nonlethal/minimum-HP policies and explicit life prevention accounting.
+- Added HealthSnapshot v2 with v1 compatibility, plus bounded last-hit/highest-damage kill and assist attribution.
+- Pruned destroyed Unity event subscribers, including components created by editor simulations without runtime lifecycle callbacks.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

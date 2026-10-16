@@ -71,6 +71,7 @@ namespace EasyCombat
         private static long sequence;
         private static Action<CombatRecord> handlers;
         private static Action<CombatRecord>[] listeners = Array.Empty<Action<CombatRecord>>();
+        public static int SubscriberCount => listeners.Length;
         public static event Action<CombatRecord> DamageResolved
         {
             add { handlers += value; CacheListeners(); }
@@ -91,8 +92,12 @@ namespace EasyCombat
             if (snapshot.Length == 0) return;
             var record = new CombatRecord(NextId(), CombatClock.Now, target, result,targetHealth);
             for (var i = 0; i < snapshot.Length; i++)
+            {
+                // EditMode-created components may never receive OnDestroy. Prune their delegates on dispatch.
+                if(snapshot[i].Target is UnityEngine.Object subscriber && subscriber==null) { DamageResolved-=snapshot[i]; continue; }
                 try { snapshot[i](record); }
                 catch (Exception exception) { Debug.LogException(exception); } // Observability must not cancel death/gameplay events.
+            }
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSubscribers() { handlers = null; listeners = Array.Empty<Action<CombatRecord>>(); }

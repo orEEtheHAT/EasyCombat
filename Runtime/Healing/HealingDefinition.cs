@@ -73,7 +73,7 @@ namespace EasyCombat
             info = new HealingInfo((float)total, source,critical,MaximumHealing,Overheal,OverhealShieldIndex); return true;
         }
     }
-    public enum HealingRejection { None, Invalid, Disabled, Dead, Restricted, Reentrant }
+    public enum HealingRejection { None, Invalid, Disabled, Dead, Restricted, Reentrant, Downed }
     public readonly struct HealingInfo
     {
         public readonly float Amount, Maximum;

@@ -31,6 +31,7 @@ To run the package tests, install Unity Test Framework and add `com.oreethehat.e
 - SO reactions with conditions, tags, cooldowns, deferred execution and bounded chains.
 - Conditional damage modifiers, type conversion, resistance penetration and selective protection bypass.
 - Status lifecycle notifications, category dispels, exact stack costs, status resistance and overlapping control restrictions.
+- Atomic status combinations, optional downed/revive rules, nonlethal damage and bounded kill/assist attribution.
 
 Definitions are shared configuration. Health, resources, timers, shield charges and status instances are owned by actors. Treat definitions as immutable during combat.
 
@@ -46,6 +47,7 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Reactions / Реакции](Documentation~/Reactions.ru.md)
 - [Damage modifiers / Модификаторы урона](Documentation~/DamageModifiers.ru.md)
 - [Statuses and control / Статусы и контроль](Documentation~/StatusesControl.ru.md)
+- [Life and attribution / Жизнь и учёт убийств](Documentation~/LifeAttribution.ru.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries

@@ -33,15 +33,15 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 ## 5. Status lifecycle
 - [x] Application/tick/stack/refresh/expiration/removal events with reasons.
 - [x] Categories, selective cleansing and chance/duration/power resistance.
-- [ ] Status interactions and consumption with atomic execution.
+- [x] Atomic stack consumption and exchange of one status type into another; rollback preserves IDs, timers and captured strength.
 
 ## 6. Control adapters
 - [x] Overlapping action restrictions, stun/root/silence/disarm.
 - [x] Knockback/pull intent and an ECM2 adapter without mandatory dependency.
 
 ## 7. Life states
-- [ ] Downed/dead/revived, non-lethal damage and minimum-health rules.
-- [ ] Kill/assist attribution and exactly-once death notification.
+- [x] Downed/dead/revived, non-lethal damage and minimum-health rules; health snapshots preserve downed state.
+- [x] Kill/assist attribution and exactly-once death notification.
 
 ## 8. Advanced protection
 - [ ] Temporary/decaying shields, damage caps and protection charges.

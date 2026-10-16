@@ -199,6 +199,12 @@ namespace EasyCombat
 
         private bool CaptureAndApply(StatusDefinition definition, GameObject source, DamageOrigin origin, DamageResult hit, bool hasHit)
         {
+            if (!TryCaptureData(definition,source,ref origin,hit,hasHit,out var data)) return false;
+            return ApplyPrepared(definition,source,origin,data);
+        }
+        private bool TryCaptureData(StatusDefinition definition, GameObject source, ref DamageOrigin origin, DamageResult hit, bool hasHit, out ApplicationData data)
+        {
+            data = null;
             if (definition == null || !definition.IsValid || !isActiveAndEnabled || !Health.IsAlive || Health.IsImmuneToStatus(definition)) return false;
             var chance = 1f; var durationMultiplier = 1f; var power = 1f;
             var statusDefense = Health.Definition != null ? Health.Definition.StatusDefense : null;
@@ -207,7 +213,7 @@ namespace EasyCombat
             if (chance <= 0 || !CombatMath.Positive(duration) || chance < 1 && CombatRandom.Value >= chance) return false;
             if (origin.CastId == 0) origin = DamageOrigin.Capture(source);
             origin = origin.WithStatus(definition);
-            var data = applicationPool.Count > 0 ? applicationPool.Pop() : new ApplicationData();
+            data = applicationPool.Count > 0 ? applicationPool.Pop() : new ApplicationData();
             data.Duration = duration; data.Interval = definition.TickInterval; data.Power = power;
             data.PlannedTicks = PeriodicDamageEffect.PlannedTicks(data.Duration, data.Interval);
             data.HasBudget = false;
@@ -236,7 +242,7 @@ namespace EasyCombat
             }
             catch { ReleaseData(data); throw; }
             if (data.HasBudget && data.PlannedTicks < 1) { ReleaseData(data); return false; }
-            return ApplyPrepared(definition, source, origin, data);
+            return true;
         }
 
         private bool ApplyPrepared(StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data)

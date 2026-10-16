@@ -27,7 +27,7 @@ namespace EasyCombat
             {
                 if (!isActiveAndEnabled) return CombatRestriction.None;
                 var statuses=GetComponent<StatusController>();
-                return manual | (statuses != null && statuses.isActiveAndEnabled ? statuses.Restrictions : CombatRestriction.None);
+                return manual | LifeRestrictions(gameObject) | (statuses != null && statuses.isActiveAndEnabled ? statuses.Restrictions : CombatRestriction.None);
             }
         }
         public bool Allows(CombatRestriction action) => (Restrictions & action)==0;
@@ -54,7 +54,15 @@ namespace EasyCombat
             var control=actor.GetComponent<CombatControl>();
             if (control!=null && control.isActiveAndEnabled) return control.Allows(action);
             var statuses=actor.GetComponent<StatusController>();
-            return statuses==null || !statuses.isActiveAndEnabled || (statuses.Restrictions & action)==0;
+            var restrictions=LifeRestrictions(actor) | (statuses!=null && statuses.isActiveAndEnabled ? statuses.Restrictions : CombatRestriction.None);
+            return (restrictions & action)==0;
+        }
+        private static CombatRestriction LifeRestrictions(GameObject actor)
+        {
+            var health=actor.GetComponent<Health>();
+            if(health==null) return CombatRestriction.None;
+            if(health.LifeState==CombatLifeState.Dead) return CombatRestriction.All;
+            return health.LifeState==CombatLifeState.Downed && health.LifeRules!=null ? health.LifeRules.DownedRestrictions : CombatRestriction.None;
         }
     }
 }
