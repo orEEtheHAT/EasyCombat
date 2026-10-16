@@ -52,9 +52,9 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Stagger/status buildup resources with threshold actions.
 
 ## 10. Abilities and delivery
-- [ ] Ability execution, targeting, costs, cooldowns, charges and cancellation.
-- [ ] Melee windows, swept contacts and repeat-hit policy.
-- [ ] Sustained beams, area enter/stay/exit rules.
+- [x] Ability execution, targeting, costs, cooldowns, charges and cancellation.
+- [x] Melee windows, swept contacts and repeat-hit policy.
+- [x] Sustained beams, area enter/stay/exit rules.
 - [ ] Optional homing, ricochet/return/chain delivery and Physics2D adapter.
 
 ## 11. Save/restore

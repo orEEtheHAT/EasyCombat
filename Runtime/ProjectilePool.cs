@@ -18,6 +18,9 @@ namespace EasyCombat
         private bool shuttingDown;
         private Action<DamageProjectile> returnCallback;
         public int ActiveCount => active.Count;
+        public int RemainingCapacity => Mathf.Max(0,maximumActive-active.Count);
+        public bool CanSpawn(AttackDefinition attack,int count=1) => !shuttingDown && isActiveAndEnabled && attack!=null && attack.IsValid
+            && (attack.ProjectilePrefab!=null || prefab!=null) && count>0 && count<=RemainingCapacity;
         public DamageProjectile Prefab { get => prefab; set => prefab = value; }
         private void Start() { if (prefab != null) Prewarm(prefab, prewarmCount); }
 

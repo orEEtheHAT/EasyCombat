@@ -60,9 +60,11 @@ namespace EasyCombat
         { var index = Find(key); value = index >= 0 ? states[index].View : default; return index >= 0; }
         public bool CanSpend(ReadOnlySpan<ResourceCost> costs)
         { Span<float> totals = stackalloc float[Capacity]; return !mutating && isActiveAndEnabled && PrepareCosts(costs,totals); }
-        private bool PrepareCosts(ReadOnlySpan<ResourceCost> costs, Span<float> totals)
+        public bool CanSpend(ReadOnlySpan<ResourceCost> first,ReadOnlySpan<ResourceCost> second)
+        { Span<float> totals=stackalloc float[Capacity]; return !mutating && isActiveAndEnabled && PrepareCosts(first,totals) && PrepareCosts(second,totals,false); }
+        private bool PrepareCosts(ReadOnlySpan<ResourceCost> costs, Span<float> totals,bool clear=true)
         {
-            totals.Clear();
+            if(clear) totals.Clear();
             for (var i = 0; i < costs.Length; i++)
             {
                 var cost = costs[i]; if (!cost.IsValid) return false;

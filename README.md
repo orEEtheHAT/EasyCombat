@@ -34,6 +34,8 @@ To run the package tests, install Unity Test Framework and add `com.oreethehat.e
 - Atomic status combinations, optional downed/revive rules, nonlethal damage and bounded kill/assist attribution.
 - Temporary/decaying shields, protection charges, damage caps, paid blocks and bounded guardian redirection.
 - Linked body-part durability, grouped contacts and independent buildup meters with deferred threshold actions.
+- SO abilities with targeting, atomic release costs, cast cancellation, cooldowns and sequential charges.
+- Swept melee windows, sustained beams and sampled area enter/stay/exit payloads.
 
 Definitions are shared configuration. Health, resources, timers, shield charges and status instances are owned by actors. Treat definitions as immutable during combat.
 
@@ -52,6 +54,7 @@ Open **EasyCombat → Combat Studio**. Start with a Health Profile, a Weapon def
 - [Life and attribution / Жизнь и учёт убийств](Documentation~/LifeAttribution.ru.md)
 - [Advanced defense / Расширенная защита](Documentation~/AdvancedDefense.ru.md)
 - [Body parts and buildup / Части тела и накопление](Documentation~/Composite.ru.md)
+- [Abilities and delivery / Способности и доставка](Documentation~/AbilitiesDelivery.ru.md)
 - [Changelog](CHANGELOG.md)
 
 ## Package boundaries
