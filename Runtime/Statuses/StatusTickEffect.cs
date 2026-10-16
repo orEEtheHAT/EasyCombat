@@ -38,7 +38,7 @@ namespace EasyCombat
             DamageOrigin origin = default, long stackId = 0, float capturedValue = 0, bool hasCapturedValue = false, float duration = 0, float interval = 0, double plannedTickCount = 0,
             DamageFormulaSnapshot formula = default, float outgoingMultiplier = 1, bool hasOutgoingType = false, DamageTypeDefinition outgoingType = null, float power = 1)
         {
-            Controller = controller; Target = target; Source = source; Definition = definition; Stacks = stacks; Origin = origin; StackId = stackId;
+            Controller = controller; Target = target; Source = CombatSources.ForLife(source,origin.Actor.Id); Definition = definition; Stacks = stacks; Origin = origin; StackId = stackId;
             CapturedValue = capturedValue; HasCapturedValue = hasCapturedValue;
             Duration = duration > 0 ? duration : definition != null ? definition.Duration : 0;
             Interval = interval > 0 ? interval : definition != null ? definition.TickInterval : 0;

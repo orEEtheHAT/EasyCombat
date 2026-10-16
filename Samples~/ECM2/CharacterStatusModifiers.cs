@@ -25,12 +25,12 @@ namespace EasyCombat.Integrations
             baseRotationRate=character.rotationRate;
             control=GetComponent<CombatControl>(); health=GetComponent<Health>();
         }
-        private void OnEnable() { statuses.Changed += Refresh; if(control!=null) control.Changed+=ControlChanged; if(health!=null) { health.Downed+=LifeChanged; health.Died+=LifeChanged; health.Revived+=LifeChanged; health.Changed+=HealthChanged; } Refresh(); }
+        private void OnEnable() { statuses.Changed += Refresh; if(control!=null) control.Changed+=ControlChanged; if(health!=null) { health.Downed+=LifeChanged; health.Died+=LifeChanged; health.Revived+=LifeChanged; health.StateRestored+=LifeChanged; health.Changed+=HealthChanged; } Refresh(); }
         private void OnDisable()
         {
             if (statuses != null) statuses.Changed -= Refresh;
             if (control!=null) control.Changed-=ControlChanged;
-            if(health!=null) { health.Downed-=LifeChanged; health.Died-=LifeChanged; health.Revived-=LifeChanged; health.Changed-=HealthChanged; }
+            if(health!=null) { health.Downed-=LifeChanged; health.Died-=LifeChanged; health.Revived-=LifeChanged; health.StateRestored-=LifeChanged; health.Changed-=HealthChanged; }
             if (character != null)
             { character.maxWalkSpeed=baseWalkSpeed; character.maxWalkSpeedCrouched=baseCrouchSpeed; character.maxFlySpeed=baseFlySpeed; character.maxSwimSpeed=baseSwimSpeed; character.canEverJump=baseCanJump; character.rotationRate=baseRotationRate; }
         }

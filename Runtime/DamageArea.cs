@@ -5,7 +5,7 @@ namespace EasyCombat
 {
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Damage Area")]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed class DamageArea : MonoBehaviour
+    public sealed class DamageArea : MonoBehaviour,ICombatTransient
     {
         [SerializeField] private AreaPulseDefinition definition;
         [SerializeField] private GameObject source;
@@ -106,12 +106,13 @@ namespace EasyCombat
             finishing = true;
             var returnToPool = release; release = null;
             payload = default; owner = null;
-            try { Ended?.Invoke(this); }
+            try { if(!CombatSaveSystem.IsRestoring) Ended?.Invoke(this); }
             finally
             {
                 try { returnToPool?.Invoke(this); }
                 finally { finishing = false; }
             }
         }
+        public void CancelForRestore()=>Stop();
     }
 }

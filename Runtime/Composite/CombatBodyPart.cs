@@ -4,7 +4,7 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent,RequireComponent(typeof(Health),typeof(Hurtbox)),AddComponentMenu("EasyCombat/Composite/Body Part")]
-    public sealed class CombatBodyPart : MonoBehaviour,IDamageable,ICombatTargetGroup
+    public sealed partial class CombatBodyPart : MonoBehaviour,IDamageable,ICombatTargetGroup
     {
         [SerializeField] private BodyPartDefinition definition;
         [SerializeField] private Health core;

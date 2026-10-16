@@ -58,9 +58,9 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Optional 3D homing, ricochet/return/chain delivery and optional Physics2D hitscan/projectile/AOE adapter (scope in ProjectileMotion2D.ru.md).
 
 ## 11. Save/restore
-- [ ] Stable definition catalog and actor identity mapping.
-- [ ] Versioned snapshots for resources, shields, statuses, modifiers and abilities.
-- [ ] Restore without rewards, new random rolls or hit side effects.
+- [x] Stable definition catalog and actor identity mapping.
+- [x] Versioned snapshots for resources, shields, statuses, modifiers and abilities, plus buildup/control/reactions/attribution/links.
+- [x] Prevalidated restore without rewards, new random rolls or hit side effects; transient delivery is cancelled (actor-state scope documented in Saving.ru.md).
 
 ## 12. Authoring and diagnostics
 - [ ] Battle calculator and scenario simulation.

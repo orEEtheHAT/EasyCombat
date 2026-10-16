@@ -4,7 +4,7 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent,AddComponentMenu("EasyCombat/Delivery/Beam")]
-    public sealed class CombatBeam:MonoBehaviour,ICombatDeliveryTick
+    public sealed class CombatBeam:MonoBehaviour,ICombatDeliveryTick,ICombatTransient
     {
         [SerializeField] private Transform ownerRoot,muzzle;
         [SerializeField] private DamageAreaPool areaPool;
@@ -103,5 +103,6 @@ namespace EasyCombat
         }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }
         private void OnDisable()=>Stop();
+        public void CancelForRestore()=>Stop();
     }
 }

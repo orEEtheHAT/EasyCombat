@@ -5,7 +5,7 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent, RequireComponent(typeof(Health)), AddComponentMenu("EasyCombat/Combat Reactions")]
-    public sealed class CombatReactions : MonoBehaviour
+    public sealed partial class CombatReactions : MonoBehaviour
     {
         [SerializeField] private ReactionDefinition[] reactions = Array.Empty<ReactionDefinition>();
         private struct Cooldown { public long Key; public double Until; }

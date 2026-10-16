@@ -10,11 +10,12 @@ namespace EasyCombat
     {
         internal readonly CombatControl Owner;
         internal readonly long Id;
+        public long SaveKey=>Id;
         internal ControlHandle(CombatControl owner,long id) { Owner=owner; Id=id; }
         public bool Remove() => Owner != null && Owner.Remove(this);
     }
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Control/Combat Control")]
-    public sealed class CombatControl : MonoBehaviour
+    public sealed partial class CombatControl : MonoBehaviour
     {
         private struct Lease { public long Id; public CombatRestriction Restriction; }
         private readonly List<Lease> leases=new List<Lease>(8);

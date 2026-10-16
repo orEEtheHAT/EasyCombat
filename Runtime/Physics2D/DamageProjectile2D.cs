@@ -4,7 +4,7 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent,AddComponentMenu("EasyCombat/2D/Damage Projectile")]
-    public sealed class DamageProjectile2D:MonoBehaviour,ICombatDeliveryTick
+    public sealed class DamageProjectile2D:MonoBehaviour,ICombatDeliveryTick,ICombatTransient
     {
         private readonly AttackTrace2D trace=new AttackTrace2D();
         private float speed,range,lifetime;
@@ -49,5 +49,6 @@ namespace EasyCombat
         }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }
         private void OnDisable()=>Despawn();
+        public void CancelForRestore()=>Despawn();
     }
 }

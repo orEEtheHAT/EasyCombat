@@ -16,7 +16,7 @@ namespace EasyCombat
     /// <summary>Actor-owned stats: max(0, base + flat) * max(0, 1 + additivePercent) * multipliers * statuses.</summary>
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Combat Stats")]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed class CombatStats : MonoBehaviour
+    public sealed partial class CombatStats : MonoBehaviour
     {
         [SerializeField] private CombatStatsDefinition profile;
         [SerializeField] private CombatStatValue[] values = Array.Empty<CombatStatValue>();

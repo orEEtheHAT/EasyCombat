@@ -5,7 +5,7 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent,AddComponentMenu("EasyCombat/Delivery/Melee")]
-    public sealed class CombatMelee:MonoBehaviour,ICombatDeliveryTick
+    public sealed class CombatMelee:MonoBehaviour,ICombatDeliveryTick,ICombatTransient
     {
         [SerializeField] private Transform ownerRoot;
         [SerializeField,Tooltip("Up to eight sample points along a weapon. Empty uses this transform.")] private Transform[] anchors=Array.Empty<Transform>();
@@ -122,5 +122,6 @@ namespace EasyCombat
         { hits.Clear(); damage=default; source=null; sourceHealth=null; Array.Clear(activeAnchors,0,activeAnchors.Length); DeliveryScheduler.Unregister(this); ended.Publish(); }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }
         private void OnDisable()=>Stop();
+        public void CancelForRestore()=>Stop();
     }
 }

@@ -20,7 +20,7 @@ namespace EasyCombat
         }
         public void Publish(T value)
         {
-            if (depth >= 32) return;
+            if (depth >= 32 || CombatSaveSystem.IsRestoring) return;
             depth++;
             try
             {
@@ -49,7 +49,7 @@ namespace EasyCombat
         }
         public void Publish()
         {
-            if (depth >= 32) return; depth++;
+            if (depth >= 32 || CombatSaveSystem.IsRestoring) return; depth++;
             try
             {
                 var snapshot = listeners;

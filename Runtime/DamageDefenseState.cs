@@ -30,7 +30,7 @@ namespace EasyCombat
     }
     /// <summary>One optional, bounded state container per receiver. Scratch states make the whole hit transactional.</summary>
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed class DamageDefenseState
+    public sealed partial class DamageDefenseState
     {
         private readonly DefenseSlot[] slots;
         private readonly DefenseLayerState[] states, pending;

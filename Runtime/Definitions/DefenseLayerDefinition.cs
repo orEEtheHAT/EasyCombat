@@ -6,6 +6,7 @@ namespace EasyCombat
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
     public enum DefenseHitKinds { All, Direct, Periodic }
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
+    [Serializable]
     public struct DefenseLayerState
     {
         public float Current, Maximum, RechargeDelay;

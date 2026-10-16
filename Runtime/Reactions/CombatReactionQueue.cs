@@ -21,6 +21,7 @@ namespace EasyCombat
         private static bool flushing;
         public static long ResolutionId { get; private set; }
         public static long DroppedActions { get; private set; }
+        internal static bool IsProcessing=>transactions>0 || flushing || count>0;
         internal static void Enter() { if (transactions == 0 && !flushing) { ResolutionId++; reserved=0; } transactions++; }
         internal static void Exit() { transactions--; if (transactions == 0) Flush(); }
         internal static bool Enqueue(ReactionDefinition recipe, in ReactionContext context)

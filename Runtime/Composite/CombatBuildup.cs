@@ -18,7 +18,7 @@ namespace EasyCombat
         public BuildupChange(BuildupView meter,float previous,bool triggered) { Meter=meter; Previous=previous; Triggered=triggered; }
     }
     [DisallowMultipleComponent,RequireComponent(typeof(Health)),AddComponentMenu("EasyCombat/Composite/Buildup")]
-    public sealed class CombatBuildup : MonoBehaviour
+    public sealed partial class CombatBuildup : MonoBehaviour
     {
         [SerializeField] private BuildupDefinition[] definitions=Array.Empty<BuildupDefinition>();
         private struct State { public BuildupDefinition Definition; public float Value,Delay,Cooldown; }

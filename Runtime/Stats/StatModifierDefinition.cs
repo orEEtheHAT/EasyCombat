@@ -39,6 +39,7 @@ namespace EasyCombat
     {
         internal readonly CombatStats Owner;
         internal readonly long Id;
+        public long SaveKey=>Id;
         internal StatModifierHandle(CombatStats owner, long id) { Owner = owner; Id = id; }
         public bool IsActive => Owner != null && Owner.Contains(this);
         public bool Remove() => Owner != null && Owner.Remove(this);

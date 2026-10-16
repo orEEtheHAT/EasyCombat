@@ -6,7 +6,7 @@ namespace EasyCombat
     [DisallowMultipleComponent]
     [AddComponentMenu("EasyCombat/Health")]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed class Health : MonoBehaviour, IDamageable
+    public sealed partial class Health : MonoBehaviour, IDamageable
     {
         [SerializeField, Min(0.001f)] private float maximumHealth = 100f;
         [SerializeField, Tooltip("Optional reusable initial health/resistance configuration.")]

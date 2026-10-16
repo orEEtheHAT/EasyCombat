@@ -17,6 +17,7 @@ namespace EasyCombat
             t6 = tags?.Length > 6 ? tags[6] : null; t7 = tags?.Length > 7 ? tags[7] : null;
         }
         public bool Contains(CombatTagDefinition tag) => tag != null && (tag == t0 || tag == t1 || tag == t2 || tag == t3 || tag == t4 || tag == t5 || tag == t6 || tag == t7);
+        internal CombatTagDefinition Get(int index)=>index switch { 0=>t0,1=>t1,2=>t2,3=>t3,4=>t4,5=>t5,6=>t6,7=>t7,_=>null };
         public bool ContainsAll(CombatTagDefinition[] tags)
         { if (tags != null) foreach (var tag in tags) if (!Contains(tag)) return false; return true; }
         public bool ContainsAny(CombatTagDefinition[] tags)

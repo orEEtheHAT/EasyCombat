@@ -6,7 +6,7 @@ namespace EasyCombat
     [DisallowMultipleComponent]
     [AddComponentMenu("EasyCombat/Damage Projectile")]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public sealed partial class DamageProjectile : MonoBehaviour
+    public sealed partial class DamageProjectile : MonoBehaviour,ICombatTransient
     {
         private readonly AttackTrace trace = new AttackTrace();
         private float speed, remainingRange, remainingLifetime;
@@ -89,5 +89,6 @@ namespace EasyCombat
         }
 
         private void OnDisable() => Despawn();
+        public void CancelForRestore()=>Despawn();
     }
 }

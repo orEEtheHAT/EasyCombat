@@ -87,5 +87,15 @@ namespace EasyCombat.Tests
             Physics2D.SyncTransforms(); emitter.TryFire(origin,Vector2.right); Assert.That(target.Current,Is.EqualTo(100));
             target.transform.rotation=Quaternion.Euler(0,0,180); Physics2D.SyncTransforms(); emitter.TryFire(origin,Vector2.right); Assert.That(target.Current,Is.EqualTo(90));
         }
+        [Test] public void WorldRestoreRepairs2DBodyPartColliderState()
+        {
+            var core=Target(new Vector2(8,0)); var child=Actor("SavedPart",new Vector2(5,0)); child.transform.SetParent(core.transform,true); var collider=child.AddComponent<CircleCollider2D>();
+            var profile=Asset<BodyPartDefinition>(); profile.Health=Asset<HealthDefinition>(); profile.Health.MaximumHealth=20;
+            var part=child.AddComponent<CombatBodyPart>(); part.Configure(profile,core); child.AddComponent<BodyPartColliders2D>().Initialize();
+            var registry=new CombatReferenceRegistry(); registry.RegisterActor("core",core); registry.RegisterActor("part",part.LocalHealth);
+            var catalog=Asset<CombatDefinitionCatalog>(); catalog.Configure(new[] { new CombatCatalogEntry("part",profile),new CombatCatalogEntry("hp",profile.Health) });
+            Assert.That(CombatSaveSystem.TryCaptureJson(catalog,registry,out var json,out var error),Is.True,error); part.ApplyDamage(new DamageInfo(20)); Assert.That(collider.enabled,Is.False);
+            Assert.That(CombatSaveSystem.TryRestoreJson(json,catalog,registry,out _,out error),Is.True,error); Assert.That(collider.enabled,Is.True); Assert.That(part.IsBroken,Is.False);
+        }
     }
 }

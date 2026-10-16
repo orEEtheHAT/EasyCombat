@@ -15,9 +15,7 @@ namespace EasyCombat
             get
             {
                 if(!UseTriggerSource) return Owner!=null ? Owner.gameObject : null;
-                var source=Trigger.Result.Damage.Source; if(source==null) return null;
-                var health=source.GetComponentInParent<Health>();
-                return health!=null && Trigger.Result.Damage.Origin.Actor.Id>0 && health.Identity.Id!=Trigger.Result.Damage.Origin.Actor.Id ? null : source;
+                return CombatSources.ForLife(Trigger.Result.Damage.Source,Trigger.Result.Damage.Origin.Actor.Id);
             }
         }
         public DamageOrigin Origin(AttackDefinition attack = null)

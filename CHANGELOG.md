@@ -34,5 +34,9 @@
 - Added captured homing, physical ricochet, chained-target and returning 3D projectile profiles with bounded substeps.
 - Added optional Physics2D delivery assembly and separate EditMode/PlayMode adapter tests; shared health/status/defense contracts remain in the core.
 - Added configurable local facing for directional block and 2D body-part collider lifecycle integration.
+- Added stable definition catalogs, explicit actor/source registries and versioned JSON actor-state snapshots.
+- Preserved captured status formulas/strength, per-stack timers, shields, resources, modifiers, ability windups/charges and reaction/attribution state across restore.
+- Added full prevalidation, coherent life/action remapping and notification-safe restore; transient deliveries end without zone exit damage.
+- Guarded live status/formula sources against reuse of the original GameObject for a new combat life.
 
 Further modules are tracked in ROADMAP.md; this entry is updated before release.

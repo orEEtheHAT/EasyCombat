@@ -29,7 +29,7 @@ namespace EasyCombat
         { Victim=victim; Killer=killer; Assists=assists; FinalHit=finalHit; }
     }
     [DisallowMultipleComponent,RequireComponent(typeof(Health)),AddComponentMenu("EasyCombat/Life/Combat Attribution")]
-    public sealed class CombatAttribution : MonoBehaviour
+    public sealed partial class CombatAttribution : MonoBehaviour
     {
         [SerializeField] private AttributionDefinition definition;
         private struct Contribution { public CombatActorIdentity Actor; public float Damage; public double Time; }

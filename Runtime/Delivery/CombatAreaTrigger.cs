@@ -16,7 +16,7 @@ namespace EasyCombat
     }
     /// <summary>Sampled occupancy sensor. Uses the same receiver grouping and area filters as ordinary AOE.</summary>
     [DisallowMultipleComponent,AddComponentMenu("EasyCombat/Delivery/Area Enter Stay Exit")]
-    public sealed class CombatAreaTrigger:MonoBehaviour,ICombatDeliveryTick
+    public sealed class CombatAreaTrigger:MonoBehaviour,ICombatDeliveryTick,ICombatTransient
     {
         [SerializeField] private bool automaticAdvance=true;
         private struct Member
@@ -165,5 +165,6 @@ namespace EasyCombat
         }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }
         private void OnDisable()=>Stop();
+        public void CancelForRestore() { emitExitOnStop=false; Stop(); }
     }
 }

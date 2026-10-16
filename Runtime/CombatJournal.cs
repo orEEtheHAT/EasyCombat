@@ -94,6 +94,7 @@ namespace EasyCombat
         internal static long NextId() => ++sequence;
         internal static void Publish(CombatActorIdentity target, DamageResult result, Health targetHealth = null)
         {
+            if(CombatSaveSystem.IsRestoring) return;
             var snapshot = listeners;
             var source=result.Damage.Source!=null ? result.Damage.Source.GetComponentInParent<Health>() : null;
             if(source!=null && source.Identity.Id!=result.Damage.Origin.Actor.Id) source=null;

@@ -18,7 +18,7 @@ namespace EasyCombat
         }
     }
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Combat Resources")]
-    public sealed class CombatResources : MonoBehaviour
+    public sealed partial class CombatResources : MonoBehaviour
     {
         public const int Capacity = 32;
         [SerializeField] private ResourceProfile profile;

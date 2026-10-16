@@ -15,14 +15,17 @@ namespace EasyCombat
 
     /// <summary>Immutable value recipe carried to a receiver. Target HP is read once, just before that hit changes it.</summary>
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
-    public struct DamageFormulaSnapshot
+    public partial struct DamageFormulaSnapshot
     {
         private PreparedDamageTerm a, b, c, d, e, f, g, h;
         private GameObject source;
+        private Health sourceHealth;
+        private long sourceLife;
         private float scale;
         public int Count { get; private set; }
         public bool IsCritical { get; private set; }
-        internal DamageFormulaSnapshot(GameObject source, bool critical) : this() { this.source = source; IsCritical = critical; scale = 1; }
+        internal DamageFormulaSnapshot(GameObject source, bool critical) : this()
+        { this.source = source; sourceHealth=source!=null ? source.GetComponentInParent<Health>() : null; sourceLife=CombatSources.IdentityId(source); IsCritical = critical; scale = 1; }
         private PreparedDamageTerm Get(int index) => index switch { 0 => a, 1 => b, 2 => c, 3 => d, 4 => e, 5 => f, 6 => g, 7 => h, _ => throw new ArgumentOutOfRangeException(nameof(index)) };
         internal void Add(PreparedDamageTerm term)
         {
@@ -49,7 +52,7 @@ namespace EasyCombat
         internal DamageFormulaSnapshot Adjust(DamageModifierProfile profile, bool periodic, CombatTagSet tags)
         {
             if (profile == null) return this;
-            var copy = new DamageFormulaSnapshot(source,IsCritical); copy.scale = scale;
+            var copy = new DamageFormulaSnapshot(source,IsCritical); copy.scale = scale; copy.sourceHealth=sourceHealth; copy.sourceLife=sourceLife;
             for (var i = 0; i < Count; i++)
             {
                 var term = Get(i);
@@ -68,7 +71,8 @@ namespace EasyCombat
                 var term = Get(i);
                 // A missing live source contributes zero. Captured values are independent of source lifetime.
                 var input = new StatusDamageTerm(term.Basis, 1) { Stat = term.Stat };
-                if (!DamageFormulaMath.TryValue(input, currentHealth, maximumHealth, true, source, default, false, out var basis)) basis = 0;
+                var liveSource=term.Basis==StatusDamageBasis.SourceStat ? CombatSources.ForLife(source,sourceLife) : null;
+                if (!DamageFormulaMath.TryValue(input, currentHealth, maximumHealth, true, liveSource, default, false, out var basis)) basis = 0;
                 var value = (double)basis * term.Value * term.Multiplier * scale;
                 if (term.Limit > 0) value = Math.Min(value, term.Limit);
                 if (double.IsNaN(value) || double.IsInfinity(value) || value < 0 || value > float.MaxValue) return false;
