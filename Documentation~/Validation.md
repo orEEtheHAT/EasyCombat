@@ -1,6 +1,6 @@
 # Release validation
 
-Target editor: Unity 6000.3.22f1, Windows, 2026-10-17. The final clean-project Git/WebGL pass is in progress; the release tag is not created until it completes.
+Target editor: Unity 6000.3.22f1, Windows, 2026-10-17. Initial release validation completed. The clean build used public Git commit `a1ba5c3dcd0388300f144654ccb57b6b5117443c`; subsequent release changes only finalize this report and roadmap.
 
 ## Regression suites
 
@@ -17,6 +17,26 @@ Target editor: Unity 6000.3.22f1, Windows, 2026-10-17. The final clean-project G
 The tests exercise real HP/formula/defense/status transactions, pooled life identities, shared physics delivery, bounded reactions, save/restore JSON, isolated editor simulations and presentation budgets. Warm allocation checks cover selected core paths; third-party effects and sample UI are excluded.
 
 Combat Lab was imported into the development project and exercised through Unity CLI in Play mode: hitscan damage, three poison stacks exchanged for one burst (1000 → 960 HP including three 5-damage hits), one 20-damage melee contact, 1000 active pooled projectiles and complete return to the pool after flight. The package audit checks identity/license, asmdef isolation, runtime dependencies, metadata GUIDs and parallel Studio category arrays.
+
+## Clean Git installation and WebGL
+
+A separate project resolved the public Git URL pinned to the commit above (verified in `packages-lock.json`), with no ECM2/EasyFeedbacks/PrimeTween/Yandex package. Combat Lab built as a WebGL Development Build with IL2CPP: Unity reported **Success**, total build size **36,346,886 bytes** with compression disabled. Both sample source assemblies compiled in that project.
+
+Browser smoke at localhost verified: scene startup, hitscan HP loss, melee contacts and shield absorption, three poison shots consumed into a 25-damage burst, and a 1000-projectile volley with damage and coalescing. Browser console reported no errors/warnings during the smoke. The embedded browser was in the background and throttled rendering; its FPS readout is intentionally not reported as performance evidence. No physical Android/iOS device, Yandex moderation or production hosting was tested.
+
+GitHub Actions package-integrity run [38970398901](https://github.com/orEEtheHAT/EasyCombat/actions/runs/38970398901) passed for the tested code commit. Development project restored its original CombatSandbox scene and background setting, with zero missing scripts and 41 Studio categories.
+
+## Measured simulation load
+
+Intel Core i7-14700KF, Unity Editor, 120 measured manual steps at 1/60 s after 30 warmup steps, sparse static collision geometry. Each projectile performs an initial overlap and sweep query. No rendering, UI, input or VFX. This is **not FPS or WebGL frame time**; other editor/system load affects the numbers.
+
+| Active projectiles | Mean step, ms | p95, ms | Managed bytes over measured loop |
+|---:|---:|---:|---:|
+| 100 | 0.164 | 0.328 | 0 |
+| 500 | 0.707 | 1.087 | 0 |
+| 1000 | 1.713 | 2.314 | 0 |
+
+[Raw result](Benchmarks/editor-projectiles-0.1.0.json). Reproduce with Combat Studio's load diagnostic / `CombatSimulationBenchmark.Run()` outside Play mode. Dense impacts, guidance and actual game effects require their own profiling.
 
 ## Scope and limits
 

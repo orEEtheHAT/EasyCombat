@@ -1,0 +1,32 @@
+{
+    "unityVersion": "6000.3.22f1",
+    "device": "Intel(R) Core(TM) i7-14700KF",
+    "utcTime": "2026-10-16T21:35:01.8686886Z",
+    "scope": "Editor, manual 1/60 simulation steps, sparse static collision scene, no rendering/input/effects. Not frame time or a WebGL benchmark.",
+    "rows": [
+        {
+            "projectiles": 100,
+            "steps": 120,
+            "queriesPerStep": 200,
+            "meanMilliseconds": 0.16447416666666665,
+            "p95Milliseconds": 0.3278,
+            "allocatedBytes": 0
+        },
+        {
+            "projectiles": 500,
+            "steps": 120,
+            "queriesPerStep": 1000,
+            "meanMilliseconds": 0.7070500000000001,
+            "p95Milliseconds": 1.0867,
+            "allocatedBytes": 0
+        },
+        {
+            "projectiles": 1000,
+            "steps": 120,
+            "queriesPerStep": 2000,
+            "meanMilliseconds": 1.7128,
+            "p95Milliseconds": 2.3136,
+            "allocatedBytes": 0
+        }
+    ]
+}

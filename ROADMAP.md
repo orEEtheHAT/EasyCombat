@@ -8,7 +8,7 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 - [x] Runtime/editor independence from third-party integrations.
 - [x] Existing 276 tests pass after migration; existing sandbox remains intact.
 - [x] Dependency-free sample and clean-project installation test (Unity 6000.3.22f1; WebGL build passed).
-- [ ] Public repository, versioned release and package validation automation.
+- [x] Public repository, versioned release and package validation automation.
 
 ## 1. Hit context and execution contracts
 - [x] Tags, root/parent action identity and origin classification.
@@ -73,7 +73,7 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 ## 14. Validation and delivery
 - [x] Isolated regression tests for every new block.
 - [x] Shooter, melee, mass-combat and status-combination samples.
-- [ ] WebGL build and browser smoke test; measured load scenarios.
-- [ ] Package integrity, migration guide, API docs and release notes.
+- [x] WebGL build and browser smoke test; measured load scenarios.
+- [x] Package integrity, migration guide, API docs and release notes.
 
 Network authority/rollback remains a separate future direction, as agreed in the plan; no multiplayer implementation is claimed by this roadmap.
