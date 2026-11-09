@@ -1,7 +1,7 @@
 {
   "name": "com.oreethehat.easy-combat",
   "displayName": "EasyCombat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "6000.3",
   "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
   "author": {
@@ -36,6 +36,16 @@
       "displayName": "Easy Feedbacks Adapter",
       "description": "Optional adapter. Requires EasyFeedbacks. Includes only EasyCombat integration code.",
       "path": "Samples~/EasyFeedbacks"
+    },
+    {
+      "displayName": "EasyMovement FPS Adapter",
+      "description": "FPS speed after gait selection. Requires EasyMovement and ECM2; includes an editor tool to create a configured local player prefab.",
+      "path": "Samples~/EasyMovement"
+    },
+    {
+      "displayName": "Delivery Test Route",
+      "description": "Playable cart, fragile load, mud and continuous slowing cone against a patrolling NavMesh agent.",
+      "path": "Samples~/DeliveryRoute"
     }
   ],
   "repository": {
@@ -50,6 +60,8 @@
     "com.unity.modules.particlesystem": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
-    "com.unity.modules.uielements": "1.0.0"
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.ai": "1.0.0",
+    "com.unity.modules.vehicles": "1.0.0"
   }
 }

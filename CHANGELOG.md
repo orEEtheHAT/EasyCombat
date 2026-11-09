@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — 2026-11-10
+
+- Added physical impact profiles, guarded cargo durability, per-wheel suspension peaks and grounded rolling resistance.
+- Added source-owned continuous slow fields, volume triggers and a NavMesh gait-speed adapter.
+- Added an optional EasyMovement FPS adapter, local prefab generator a ready-to-use cart kit and a playable Delivery Test Route.
+- Added real physics, navigation, source cleanup and FPS gait regression tests.
+
 ## 0.1.0 — 2026-10-17
 
 - Extracted the existing combat foundation into a standalone UPM package.

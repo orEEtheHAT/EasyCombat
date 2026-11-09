@@ -2,17 +2,19 @@
 
 Modular, ScriptableObject-driven combat for Unity 6.3. Stats, resources, health, damage, defenses, statuses and abilities belong to one package with independent internal modules.
 
-**Initial release 0.1.0.** The agreed combat roadmap is implemented; see [ROADMAP](ROADMAP.md) and the validation report for scope and tested limits. Networking and complete 2D delivery parity are outside this release.
+**Version 0.2.0.** Environment impacts, per-wheel wear, mud, continuous slowing fields and EasyMovement FPS integration are described in [Delivery environment](Documentation~/DeliveryEnvironment.ru.md). The agreed combat roadmap is implemented; see [ROADMAP](ROADMAP.md) and the validation report for scope and tested limits. Networking and complete 2D delivery parity are outside this release.
 
 ## Installation
 
 For local development, use **Package Manager → Add package from disk** and select `package.json`. In this development project the package is embedded under `Packages/com.oreethehat.easy-combat`.
 
-For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.1.0`. Pin a release tag for production; `main` is ongoing development.
+For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.2.0`. Pin a release tag for production; `main` is ongoing development.
 
 Import **Basic Arena** from the Samples tab, run **EasyCombat → Samples → Create Basic Arena**, and press Play. The generated SOs are editable under `Assets/EasyCombatSamples/`. The sample has also built successfully for WebGL in an isolated Unity 6000.3.22f1 project.
 
 Import **Combat Lab** for shooter, swept melee, 100/500/1000 projectile volleys and an automatic three-poison-stacks-to-burst recipe. Run **EasyCombat → Samples → Create Combat Lab**.
+
+Use **EasyCombat → Delivery → Create Cart Kit** for configured prefabs or import **Delivery Test Route** and create the playable route from the same menu.
 
 Runtime and editor authoring do not depend on ECM2, PrimeTween, EasyFeedbacks, URP, Input System, or Yandex SDK. Optional adapters are imported separately from Package Manager's Samples tab after installing their prerequisites.
 

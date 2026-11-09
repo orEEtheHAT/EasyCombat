@@ -1,0 +1,1 @@
+{ "name":"EasyCombat.EasyMovement", "references":["EasyCombat.Runtime","EasyMovement.FirstPerson","EasyFootsteps.Runtime","ECM2","Unity.Cinemachine"], "autoReferenced":true }

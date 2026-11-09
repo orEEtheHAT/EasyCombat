@@ -33,6 +33,8 @@ namespace EasyCombat
         private readonly Dictionary<CombatHitKey,int> indices=new Dictionary<CombatHitKey,int>(32);
         private readonly AreaDamageQuery query=new AreaDamageQuery();
         private readonly CombatSignal<AreaContactEvent> contacts=new CombatSignal<AreaContactEvent>();
+        private readonly CombatSignal stopped=new CombatSignal();
+        public event Action Stopped { add=>stopped.Add(value); remove=>stopped.Remove(value); }
         private readonly CombatSignal<DamageImpact> impacts=new CombatSignal<DamageImpact>();
         private Action<DamageImpact> callback;
         private AreaSettings settings;
@@ -160,7 +162,7 @@ namespace EasyCombat
             finally
             {
                 members.Clear(); leaving.Clear(); indices.Clear(); selection=enter=stay=exit=default; source=null; sourceHealth=null;
-                DeliveryScheduler.Unregister(this); finishing=false; CombatReactionQueue.Exit();
+                DeliveryScheduler.Unregister(this); stopped.Publish(); finishing=false; CombatReactionQueue.Exit();
             }
         }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }

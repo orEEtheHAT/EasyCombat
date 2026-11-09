@@ -2,6 +2,8 @@
 
 Namespace основных модулей — `EasyCombat`, asmdef — `EasyCombat.Runtime`. В собственном asmdef добавь ссылку на Runtime. Physics2D находится в отдельной `EasyCombat.Physics2D`, редакторские инструменты — в `EasyCombat.Editor`. Для компонентов и SO используй Inspector/Combat Studio; код нужен для ввода, AI, анимации и связей с правилами конкретной игры.
 
+Физические источники урона, временные замедления и интеграции движения: [Доставка и среда](DeliveryEnvironment.ru.md).
+
 ## Минимальный выстрел
 
 ```csharp

@@ -1,0 +1,1 @@
+{ "name":"EasyCombat.EasyMovement.PlayModeTests", "references":["EasyCombat.Runtime","EasyCombat.EasyMovement","EasyMovement.FirstPerson","EasyFootsteps.Runtime","ECM2","Unity.Cinemachine"],"optionalUnityReferences":["TestAssemblies"],"autoReferenced":false }

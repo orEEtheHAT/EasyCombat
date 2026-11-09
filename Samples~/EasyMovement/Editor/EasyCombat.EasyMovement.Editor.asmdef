@@ -1,0 +1,1 @@
+{ "name":"EasyCombat.EasyMovement.Editor","references":["EasyCombat.Runtime","EasyCombat.EasyMovement","EasyMovement.FirstPerson","EasyFootsteps.Runtime","ECM2","Unity.Cinemachine"],"includePlatforms":["Editor"] }

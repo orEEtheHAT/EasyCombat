@@ -1,0 +1,1 @@
+{"name":"EasyCombat.Samples.DeliveryRoute.Editor","references":["EasyCombat.Runtime","EasyCombat.Editor","EasyCombat.Samples.DeliveryRoute"],"includePlatforms":["Editor"]}
