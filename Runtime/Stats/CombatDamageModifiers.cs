@@ -9,8 +9,8 @@ namespace EasyCombat
         public DamageModifierProfile Incoming;
         public static DamageInfo CaptureOutgoing(DamageInfo damage)
         {
-            var component = damage.Source != null ? damage.Source.GetComponent<CombatDamageModifiers>() : null;
-            return component != null && component.isActiveAndEnabled ? damage.Adjust(component.Outgoing) : damage;
+            return damage.Source!=null && damage.Source.TryGetComponent<CombatDamageModifiers>(out var component) && component.isActiveAndEnabled
+                ? damage.Adjust(component.Outgoing) : damage;
         }
     }
 }

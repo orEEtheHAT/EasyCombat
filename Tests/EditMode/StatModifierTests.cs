@@ -79,10 +79,11 @@ namespace EasyCombat.Tests
         {
             stats.TryAdd(M(StatModifierOperation.Flat,10),null,out _);
             for (var i=0;i<32;i++) stats.TryGetValue(key,out _);
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i=0;i<10000;i++) stats.TryGetValue(key,out _);
-            var allocated = GC.GetAllocatedBytesForCurrentThread()-before;
-            Assert.That(allocated,Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i=0;i<10000;i++) stats.TryGetValue(key,out _);
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
     }
 }

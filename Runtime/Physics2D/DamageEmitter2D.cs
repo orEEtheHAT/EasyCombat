@@ -26,7 +26,7 @@ namespace EasyCombat
             if(firing || !isActiveAndEnabled || !DamageQuery2D.Supports(attack) || !CombatMath.Finite(origin) || !CombatMath.Finite(direction)
                 || direction.sqrMagnitude<.000001f || CombatClock.Now<nextShot || !CombatControl.IsAllowed(OwnerRoot.gameObject,CombatRestriction.Attack)
                 || attack.Delivery==DamageDelivery.Projectile && (pool==null || !pool.CanSpawn)) return false;
-            var source=OwnerRoot; var statuses=source.GetComponent<StatusController>();
+            var source=OwnerRoot; source.TryGetComponent<StatusController>(out var statuses);
             var power=statuses!=null ? statuses.GetStatMultiplier(attack.DamageModifierStat) : 1; var rate=statuses!=null ? statuses.GetStatMultiplier(attack.FireRateModifierStat) : 1;
             if(!CombatMath.Positive(power) || !CombatMath.Positive(rate)) return false;
             direction.Normalize(); var request=attack.RollRandom(source.gameObject,origin,direction,power); if(!request.IsValid) return false;

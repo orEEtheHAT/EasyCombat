@@ -107,7 +107,7 @@ namespace EasyCombat
                 CombatReactionQueue.EnqueueDamage(core,damage);
             }
             brokenSignal.Publish(this);
-            if(this==null || local==null || local.Identity.Id!=life) return;
+            if(this==null || local==null || !broken || local.Identity.Id!=life) return;
             if(definition!=null && definition.OnBreak==BodyPartBreakBehavior.DisableObject) gameObject.SetActive(false);
             else if(definition!=null && definition.OnBreak==BodyPartBreakBehavior.DisableColliders) SetColliders(false);
         }

@@ -34,7 +34,7 @@ namespace EasyCombat
             Payload = default; Area = default; Duration = Interval = 0; ApplyImmediately = IsValid = false;
             OverlapGroup = null; OverlapMode = AreaOverlapMode.Stack; Priority = 0;
             if (recipe == null || !recipe.IsValid) return;
-            var statuses = source != null ? source.GetComponent<StatusController>() : null;
+            var statuses = source != null && source.TryGetComponent<StatusController>(out var found) ? found : null;
             var multiplier = statuses != null ? statuses.GetStatMultiplier(recipe.Attack.DamageModifierStat) : 1;
             if (!CombatMath.Positive(multiplier)) return;
             // The journal names the field's own attack, preserving actor, team and the triggering shot's CastId.

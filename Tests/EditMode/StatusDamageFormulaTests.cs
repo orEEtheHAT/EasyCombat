@@ -258,10 +258,11 @@ namespace EasyCombat.Tests
             var hitA = new DamageInfo(10, source, onHitStatuses: applications);
             var hitB = new DamageInfo(30, source, onHitStatuses: applications);
             for (var i = 0; i < 30; i++) { health.ResetToFull(); health.ApplyDamage(hitA); health.ApplyDamage(hitB); controller.Advance(1); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) { health.ResetToFull(); health.ApplyDamage(hitA); health.ApplyDamage(hitB); controller.Advance(1); }
-            var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-            Assert.That(allocated, Is.Zero); Assert.That(health.Current, Is.EqualTo(952));
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) { health.ResetToFull(); health.ApplyDamage(hitA); health.ApplyDamage(hitB); controller.Advance(1); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero); Assert.That(health.Current, Is.EqualTo(952));
         }
     }
 

@@ -307,11 +307,13 @@ namespace EasyCombat.Tests
             var burn = Burn(100000, 1, 1);
             statuses.Apply(burn);
             var damage = new DamageInfo(1, type: fire);
-            for (var i = 0; i < 32; i++) { health.ApplyDamage(damage); statuses.Advance(0.01f); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 10000; i++) { health.ApplyDamage(damage); statuses.Advance(0.01f); }
-            var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-            Assert.That(allocated, Is.Zero, "Measured only synchronous warmed combat core, excluding rendering/editor/events from presentation.");
+            // Exercise periodic damage as well as direct hits before measuring the warm path.
+            for (var i = 0; i < 256; i++) { health.ApplyDamage(damage); statuses.Advance(0.01f); }
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 10000; i++) { health.ApplyDamage(damage); statuses.Advance(0.01f); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Measured only synchronous warmed combat core, excluding rendering/editor/events from presentation.");
         }
     }
     public sealed class ApplyAnotherStatusEffect : StatusTickEffect

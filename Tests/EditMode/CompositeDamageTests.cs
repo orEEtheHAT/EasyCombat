@@ -149,9 +149,11 @@ namespace EasyCombat.Tests
             resistances.Configure(new DamageResistance(fire, .5f), new DamageResistance(poison, .25f));
             var shot = Roll(); for (var i = 0; i < 32; i++) health.ApplyDamage(shot);
             Assert.That(journal.Count, Is.GreaterThan(0));
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 2000; i++) health.ApplyDamage(shot);
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero, "Excludes UI formatting and cold allocation.");
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 2000; i++) health.ApplyDamage(shot);
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Excludes UI formatting and cold allocation.");
         }
         [Test] public void BrokenJournalObserverCannotCancelDeathNotification()
         {

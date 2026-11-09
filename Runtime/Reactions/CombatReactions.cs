@@ -65,7 +65,7 @@ namespace EasyCombat
             var dealt = result.Damage.Origin.Actor.Id == owner.Identity.Id;
             var taken = record.Target.Id == owner.Identity.Id;
             if (!dealt && !taken) return;
-            var partHit=dealt && record.TargetHealth!=null && record.TargetHealth.GetComponent<CombatBodyPart>()!=null;
+            var partHit=dealt && record.TargetHealth!=null && record.TargetHealth.TryGetComponent<CombatBodyPart>(out _);
             foreach (var state in states)
             {
                 var rule = state.Definition;
@@ -89,6 +89,8 @@ namespace EasyCombat
                 var target = rule.Target == ReactionTarget.Owner ? owner : rule.Target == ReactionTarget.Victim ? record.TargetHealth
                     : result.Damage.Source != null ? result.Damage.Source.GetComponentInParent<Health>() : null;
                 if (target == null) continue;
+                if(rule.Target==ReactionTarget.Attacker && target.Identity.Id!=result.Damage.Origin.Actor.Id
+                    || rule.Target==ReactionTarget.Victim && target.Identity.Id!=record.Target.Id) continue;
                 if (state.Resolution != CombatReactionQueue.ResolutionId) { state.Resolution = CombatReactionQueue.ResolutionId; state.Procs = 0; }
                 if (state.Procs >= rule.MaximumProcsPerResolution) continue;
                 var now = CombatClock.Now;

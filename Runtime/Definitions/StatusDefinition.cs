@@ -49,6 +49,7 @@ namespace EasyCombat
         [Tooltip("Additive resistance per stack. Total resistance is clamped between -1 and 1.")]
         public DamageResistance[] ResistanceModifiers = Array.Empty<DamageResistance>();
         public string Label => string.IsNullOrWhiteSpace(DisplayName) ? name : DisplayName;
+        internal string CapturedLabel => string.IsNullOrWhiteSpace(DisplayName) ? CombatNames.Capture(this) : DisplayName;
         public bool IsValid => CombatMath.Positive(Duration) && CombatMath.Finite(TickInterval)
             && TickInterval >= 0.01f && MaximumStacks >= 1
             && (Stacking == StatusStacking.RefreshDuration || Stacking == StatusStacking.StackAndRefresh

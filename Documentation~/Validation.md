@@ -1,5 +1,27 @@
 # Release validation
 
+## 0.3.1 — 2026-11-10
+
+Unity 6000.3.22f1 / Windows, Intel Core i7-14700KF. All 349 EditMode + 148 PlayMode tests in the factory project passed (497 total, including optional adapters and local integration tests). In an isolated project, all 9 independent audit checks passed, including the five regressions and a 2000-case seeded shield/resistance comparison. The additional sender-observer fanout case and all five fixes also passed in the desktop release WebGL player.
+
+A warmed, independent Unity GC.Alloc recorder returned 0 events for an empty action and 16 for 16 known allocations, both in Editor and a separate Development WebGL build. Per 1000 operations:
+
+| Workload | Editor events | WebGL Dev events |
+|---|---:|---:|
+| Direct hits, with or without the journal | 0 | 0 |
+| Shot calculations, named SO and owner with Health | 0 | 0 |
+| Shot calculations, owner without Health | 0 | 0 |
+| Shot calculations, fallback SO name | 0 | 0 |
+| Full warmed hitscan without owner Health or explicit weapon DisplayName | 0 | 0 |
+| Isolated Object.name read (control) | 1000 | 1000 |
+
+These are counts of allocations in these configurations, not bytes or guarantees about an entire game. First use of a name, pool growth, UI, VFX and user code are outside these warm measurements. In the release WebGL CPU run, 1000 sparse projectiles averaged 1.36 ms (p95 1.50), and 1024 direct two-channel hits averaged 3.00 ms (p95 3.20). No rendering, AI or VFX in timed loops; no mobile-device FPS claim.
+
+## 0.1.0 — historical report
+
+The timing measurements below are historical. Its allocated-byte counter was not positively calibrated on these Unity backends; historical zero-byte values are not evidence of zero GC. See the calibrated 0.3.1 measurements above.
+
+
 Target editor: Unity 6000.3.22f1, Windows, 2026-10-17. Initial release validation completed. The clean build used public Git commit `a1ba5c3dcd0388300f144654ccb57b6b5117443c`; subsequent release changes only finalize this report and roadmap.
 
 ## Regression suites

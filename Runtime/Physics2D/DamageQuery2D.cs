@@ -50,6 +50,7 @@ namespace EasyCombat
         private Collider2D[] overlaps=new Collider2D[16];
         private readonly List<DamageContact2D> contacts=new List<DamageContact2D>(16);
         private static readonly DamageContact2D.Comparer comparer=new DamageContact2D.Comparer();
+        private static readonly Comparison<DamageContact2D> compareContacts=comparer.Compare;
         internal DamageContact2D Get(int index)=>contacts[index];
         internal void Clear()=>contacts.Clear();
         internal static ContactFilter2D Filter(LayerMask mask,QueryTriggerInteraction triggers)
@@ -81,7 +82,7 @@ namespace EasyCombat
                         if(!duplicate) contacts.Add(new DamageContact2D(hit.collider,hit.distance,hit.point,hit.normal));
                     }
                 }
-                contacts.Sort(comparer); return contacts.Count;
+                if(contacts.Count>1) contacts.Sort(compareContacts); return contacts.Count;
             }
             finally { Array.Clear(overlaps,0,overlapsCount); }
         }

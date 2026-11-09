@@ -296,10 +296,11 @@ namespace EasyCombat.Tests
             emitter.Impacted -= impacts.Add;
             Physics.SyncTransforms();
             for (var i = 0; i < 30; i++) { near.ResetToFull(); far.ResetToFull(); emitter.TryFire(origin, Vector3.forward); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 100; i++) { near.ResetToFull(); far.ResetToFull(); emitter.TryFire(origin, Vector3.forward); }
-            var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-            Assert.That(allocated, Is.Zero, "Only warmed core, two receivers, no UI subscribers.");
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 100; i++) { near.ResetToFull(); far.ResetToFull(); emitter.TryFire(origin, Vector3.forward); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Only warmed core, two receivers, no UI subscribers.");
         }
     }
 }

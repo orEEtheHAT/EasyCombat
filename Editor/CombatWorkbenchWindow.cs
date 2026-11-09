@@ -413,7 +413,7 @@ namespace EasyCombat.Editor
                 Text(panel, report.device + "  ·  Unity " + report.unityVersion + "  ·  " + report.utcTime, "muted wrap");
                 ResultRow(panel, "Снаряды", "Среднее / шаг", "P95 / шаг", "GC / 120 шагов");
                 foreach (var row in report.rows)
-                    ResultRow(panel, row.projectiles.ToString(), $"{row.meanMilliseconds:0.###} мс", $"{row.p95Milliseconds:0.###} мс", $"{row.allocatedBytes} B");
+                    ResultRow(panel, row.projectiles.ToString(), $"{row.meanMilliseconds:0.###} мс", $"{row.p95Milliseconds:0.###} мс", row.allocationEvents>=0 ? $"{row.allocationEvents} GC.Alloc" : "GC: недоступно");
             }
             Text(scroll, "Для 60 FPS весь кадр должен уложиться в 16.67 мс. Проверяй реальную WebGL-сборку на целевых устройствах с рендером, столкновениями, звуком и эффектами. Нулевой GC в этом замере не означает нулевой GC всей игры.", "guide-text");
         }

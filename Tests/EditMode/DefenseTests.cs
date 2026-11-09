@@ -196,9 +196,11 @@ namespace EasyCombat.Tests
             var armor = Asset<FlatArmorLayer>(); var shield = Shield(1000); shield.DelayAfterAbsorption = 0; shield.RechargePerSecond = 100;
             Configure(new DefenseSlot(armor), new DefenseSlot(shield)); var hit = Hit();
             for (var i = 0; i < 32; i++) { target.ApplyDamage(hit); target.AdvanceDefense(1); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) { target.ApplyDamage(hit); target.AdvanceDefense(1); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) { target.ApplyDamage(hit); target.AdvanceDefense(1); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
     }
 }

@@ -2,13 +2,13 @@
 
 Modular, ScriptableObject-driven combat for Unity 6.3. Stats, resources, health, damage, defenses, statuses and abilities belong to one package with independent internal modules.
 
-**Version 0.3.0.** EasyCombat owns combat rules and delivery, including [environmental damage and area effects](Documentation~/EnvironmentalCombat.ru.md). Game-specific physics and level authoring belong in the consuming project. The agreed combat roadmap is implemented; see [ROADMAP](ROADMAP.md) and the validation report for scope and tested limits. Networking and complete 2D delivery parity are outside this release.
+**Version 0.3.1.** EasyCombat owns combat rules and delivery, including [environmental damage and area effects](Documentation~/EnvironmentalCombat.ru.md). Game-specific physics and level authoring belong in the consuming project. The agreed combat roadmap is implemented; see [ROADMAP](ROADMAP.md) and the validation report for scope and tested limits. Networking and complete 2D delivery parity are outside this release.
 
 ## Installation
 
 For local development, use **Package Manager → Add package from disk** and select `package.json`. In this development project the package is embedded under `Packages/com.oreethehat.easy-combat`.
 
-For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.3.0`. Pin a release tag for production; `main` is ongoing development.
+For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.3.1`. Pin a release tag for production; `main` is ongoing development.
 
 Import **Basic Arena** from the Samples tab, run **EasyCombat → Samples → Create Basic Arena**, and press Play. The generated SOs are editable under `Assets/EasyCombatSamples/`. The sample has also built successfully for WebGL in an isolated Unity 6000.3.22f1 project.
 

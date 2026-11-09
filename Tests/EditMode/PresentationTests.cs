@@ -98,9 +98,11 @@ namespace EasyCombat.Tests
             profile.Rules=new[] { new CombatPresentationRule(CombatPresentationKind.Damage,.01f,10) };
             var buffer=new CombatPresentationBuffer(profile); buffer.Emitted+=Ignore; var value=Event();
             for(var i=0;i<30;i++) { buffer.Submit(value,i); buffer.Submit(value,i); buffer.Flush(i+.1); }
-            var before=GC.GetAllocatedBytesForCurrentThread();
-            for(var i=30;i<1030;i++) { buffer.Submit(value,i); buffer.Submit(value,i); buffer.Flush(i+.1); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread()-before,Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for(var i=30;i<1030;i++) { buffer.Submit(value,i); buffer.Submit(value,i); buffer.Flush(i+.1); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
         private static void Ignore(CombatPresentationEvent _) { }
         [Test] public void ActorRelayPublishesHealthHealingAndStatusesWithoutChangingGameplay()
@@ -117,9 +119,11 @@ namespace EasyCombat.Tests
             Assert.That(values.Exists(e=>e.Kind==CombatPresentationKind.StatusTick),Is.False);
             hub.Emitted-=values.Add; hub.Emitted+=Ignore;
             for(var i=0;i<30;i++) { health.ApplyDamage(new DamageInfo(.01f)); hub.Flush(); }
-            var before=GC.GetAllocatedBytesForCurrentThread();
-            for(var i=0;i<100;i++) { health.ApplyDamage(new DamageInfo(.01f)); hub.Flush(); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread()-before,Is.Zero,"Warm local actor relay + damage resolution + hub, no UI.");
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for(var i=0;i<100;i++) { health.ApplyDamage(new DamageInfo(.01f)); hub.Flush(); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero,"Warm local actor relay + damage resolution + hub, no UI.");
         }
     }
 }

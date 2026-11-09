@@ -1,1 +1,5 @@
 [assembly:System.Runtime.CompilerServices.InternalsVisibleTo("EasyCombat.Physics2D")]
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("EasyCombat.EditModeTests")]
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("EasyCombat.PlayModeTests")]
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("EasyCombat.Physics2D.Tests")]
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("EasyCombat.Editor")]

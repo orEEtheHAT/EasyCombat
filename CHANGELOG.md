@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 — 2026-11-10
+
+- Delayed hits cannot reflect onto a recycled attacker. Reset requests during damage/healing observers are coalesced and executed after notifications, before deferred reactions. On-hit statuses stop after a reset request.
+- Preserve NavMesh gait set while inactive; transfer a slow volume to the new collider owner without removing other contacts.
+- Cache fallback source/SO names for combat snapshots, avoid negative optional component lookups on hot paths, and measure warmed GC allocation events with calibrated Unity profiling controls.
+
+
 ## 0.3.0 — 2026-11-10
 
 - Removed the game-specific sample, generator, wheel simulation and vehicle module dependency from the distributed package. Previously imported sample code belongs to the old version and should be removed or maintained by the consuming project before upgrading.

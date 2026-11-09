@@ -66,7 +66,7 @@ namespace EasyCombat
             var critical = CriticalChance >= 1 || CriticalChance > 0 && CombatRandom.Value < CriticalChance;
             if (!Formula.TryPrepare(context.Source, context.Target, context.Hit, context.HasHit, Unit == StatusDamageUnit.OverDuration,
                 critical, CriticalMultiplier, 1, out formula)) return false;
-            var modifiers = context.Source != null ? context.Source.GetComponent<CombatDamageModifiers>() : null;
+            var modifiers = context.Source != null && context.Source.TryGetComponent<CombatDamageModifiers>(out var found) ? found : null;
             if (modifiers != null && modifiers.isActiveAndEnabled && modifiers.Outgoing != null)
                 formula = formula.Adjust(modifiers.Outgoing,true,context.Origin.Action.Tags);
             return formula.IsValid;

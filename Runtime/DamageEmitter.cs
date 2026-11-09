@@ -64,7 +64,7 @@ namespace EasyCombat
             if (resolvedOwner != sourceRoot)
             {
                 resolvedOwner = sourceRoot;
-                ownerStatuses = sourceRoot.GetComponent<StatusController>();
+                sourceRoot.TryGetComponent(out ownerStatuses);
             }
             var damageMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(definition.DamageModifierStat) : 1f;
             var rateMultiplier = ownerStatuses != null ? ownerStatuses.GetStatMultiplier(definition.FireRateModifierStat) : 1f;

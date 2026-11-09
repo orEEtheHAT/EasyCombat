@@ -163,18 +163,22 @@ namespace EasyCombat.Tests
         {
             target.SetMaximum(1000000); formula.Terms[1].MaximumDamage = 1; var shot = Shot();
             for (var i = 0; i < 32; i++) target.ApplyDamage(shot);
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) target.ApplyDamage(shot);
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) target.ApplyDamage(shot);
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
         [Test] public void WarmIndependentFormulaCaptureTickAndExpiryAllocateNoManagedMemory()
         {
             target.SetMaximum(1000000); formula.Terms[1].MaximumDamage = 1;
             Status(out var controller, out var status, out _); status.Duration = 1;
             for (var i = 0; i < 32; i++) { controller.Apply(status, source); controller.Advance(1); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) { controller.Apply(status, source); controller.Advance(1); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) { controller.Apply(status, source); controller.Advance(1); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
     }
 }

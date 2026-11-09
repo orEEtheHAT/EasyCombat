@@ -12,6 +12,7 @@ namespace EasyCombat
         private Collider[] overlaps = new Collider[16];
         private readonly List<DamageContact> contacts = new List<DamageContact>(16);
 
+        private static readonly Comparison<DamageContact> compareContacts=DamageContact.Comparer.Compare;
         internal DamageContact GetContact(int index) => contacts[index];
         internal void ClearContacts() => contacts.Clear();
 
@@ -56,7 +57,7 @@ namespace EasyCombat
                         if (!alreadyOverlapping) contacts.Add(new DamageContact(collider, hit.distance, hit.point, hit.normal));
                     }
                 }
-                contacts.Sort(DamageContact.Comparer);
+                if(contacts.Count>1) contacts.Sort(compareContacts);
                 return contacts.Count;
             }
             finally { Array.Clear(overlaps, 0, overlapCount); }

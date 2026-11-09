@@ -230,7 +230,7 @@ namespace EasyCombat
                         var outgoingMultiplier = 1f; var hasOutgoingType = false; DamageTypeDefinition outgoingType = null;
                         if (effect is PeriodicDamageEffect legacy && formula.Count == 0 && source != null)
                         {
-                            var modifiers = source.GetComponent<CombatDamageModifiers>();
+                            source.TryGetComponent<CombatDamageModifiers>(out var modifiers);
                             if (modifiers != null && modifiers.isActiveAndEnabled && modifiers.Outgoing != null)
                             {
                                 if (!modifiers.Outgoing.TryAdjust(legacy.DamageType,true,origin.Action.Tags,out outgoingType,out outgoingMultiplier)) { ReleaseData(data); return false; }
@@ -355,7 +355,7 @@ namespace EasyCombat
         {
             if (applications == null) return 0;
             var applied = 0;
-            for (var i = 0; i < applications.Length; i++)
+            for (var i = 0; i < applications.Length && !Health.ResetPending; i++)
             {
                 var application = applications[i];
                 if (application.Chance >= 1f || (application.Chance > 0f && CombatRandom.Value < application.Chance))

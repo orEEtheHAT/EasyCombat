@@ -167,9 +167,11 @@ namespace EasyCombat.Tests
         {
             target.SetMaximum(100000); Start(Recipe(1, duration: 2000)); Start(Recipe(2, 1, 2000));
             for (var i = 0; i < 32; i++) AreaOverlapScheduler.AdvanceSimulation(1);
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) AreaOverlapScheduler.AdvanceSimulation(1);
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) AreaOverlapScheduler.AdvanceSimulation(1);
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
         [Test] public void SuppressedFieldDoesNotConsumeRandomStatusChance()
         {

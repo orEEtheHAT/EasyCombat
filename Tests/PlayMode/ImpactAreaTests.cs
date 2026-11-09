@@ -232,10 +232,12 @@ namespace EasyCombat.Tests
             var target = Target(); pulses.Duration = 1; var settings = Snapshot(); pool.Prewarm(spawn.Prefab, 2); Physics.SyncTransforms();
             for (var i = 0; i < 30; i++)
             { target.ResetToFull(); pool.Spawn(settings, target.transform.position, Vector3.up, Vector3.forward).Advance(1); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++)
-            { target.ResetToFull(); pool.Spawn(settings, target.transform.position, Vector3.up, Vector3.forward).Advance(1); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero, "Warmed pool/query/health/statuses, no visual prefab or UI.");
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++)
+                { target.ResetToFull(); pool.Spawn(settings, target.transform.position, Vector3.up, Vector3.forward).Advance(1); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Warmed pool/query/health/statuses, no visual prefab or UI.");
         }
     }
 }

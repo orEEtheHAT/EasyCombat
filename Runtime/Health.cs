@@ -16,7 +16,8 @@ namespace EasyCombat
         [SerializeField] private DefenseProfile defenseProfile;
         private DamageDefenseState defense;
         private float manualInvulnerability, hitInvulnerability;
-        private bool invulnerable, applyingDamage, applyingHealing;
+        private bool invulnerable, applyingDamage, applyingHealing, resetAfterHit;
+        internal bool ResetPending => resetAfterHit;
         internal int DefenseSchedulerIndex = -1;
         private float currentHealth;
         private bool initialized;
@@ -63,7 +64,7 @@ namespace EasyCombat
         private readonly CombatSignal<CombatRecord> resolvedSignal=new CombatSignal<CombatRecord>();
         public event Action<CombatRecord> Resolved { add=>resolvedSignal.Add(value); remove=>resolvedSignal.Remove(value); }
         public int ResolvedSubscriberCount=>resolvedSignal.Count;
-        internal void PublishResolved(in CombatRecord record)=>resolvedSignal.Publish(record);
+        internal void PublishResolved(in CombatRecord record,long life)=>resolvedSignal.Publish(record,this,life);
 
         private void Awake() => EnsureInitialized();
         private void OnEnable() { EnsureInitialized(); ReconcileDefenseScheduler(); }
@@ -127,7 +128,12 @@ namespace EasyCombat
             finally
             {
                 try { pendingDefenseCosts.NotifyAndRelease(); }
-                finally { applyingDamage = false; CombatReactionQueue.Exit(); }
+                finally
+                {
+                    applyingDamage = false;
+                    try { FinishDeferredReset(); }
+                    finally { CombatReactionQueue.Exit(); }
+                }
             }
         }
         private DamageResult ApplyDamageCore(DamageInfo damage)
@@ -142,7 +148,8 @@ namespace EasyCombat
             var rules = HitRules;
             var lifeRules = LifeRules;
             if(lifeRules!=null && !lifeRules.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
-            var redirector=GetComponent<DamageRedirector>();
+            var targetLife=identity;
+            TryGetComponent<DamageRedirector>(out var redirector);
             if(redirector!=null && redirector.isActiveAndEnabled && !redirector.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
             if ((rules != null && !rules.IsValid) || (DefenseProfile != null && !DefenseProfile.IsValid))
                 return Reject(damage, DamageRejection.InvalidDefense);
@@ -154,7 +161,7 @@ namespace EasyCombat
                 var denied = rules.Check(this, damage);
                 if (denied != DamageRejection.None) return Reject(damage, denied);
             }
-            var damageModifiers = GetComponent<CombatDamageModifiers>();
+            TryGetComponent<CombatDamageModifiers>(out var damageModifiers);
             if (damageModifiers != null && damageModifiers.isActiveAndEnabled && damageModifiers.Incoming != null)
             {
                 damage = damage.Adjust(damageModifiers.Incoming);
@@ -240,7 +247,7 @@ namespace EasyCombat
                 || damage.StatusPolicy == StatusApplyPolicy.AfterDamageOrShield && shieldAbsorbed > 0)
                 && damage.OnHitStatuses != null && damage.OnHitStatuses.Length > 0)
             {
-                if (statuses == null) statuses = GetComponent<StatusController>();
+                if (statuses == null) TryGetComponent(out statuses);
                 if (statuses != null)
                 {
                     var hit = new DamageResult(damage, applied, killed, breakdown: breakdown, effectiveAmount: effectiveAmount,
@@ -253,7 +260,7 @@ namespace EasyCombat
                 : damage.Amount == 0 && appliedStatuses == 0 ? DamageRejection.NoEffect : DamageRejection.None;
             var result = new DamageResult(damage, applied, killed, rejection, breakdown, effectiveAmount, appliedStatuses,
                 healthDamage, shieldAbsorbed, armorPrevented, resistanceDelta, defenses,becameDowned,lifePrevented,redirected);
-            CombatEvents.Publish(identity, result, this);
+            CombatEvents.Publish(targetLife, result, this);
             if (shieldAbsorbed > 0) defenseChangedSignal.Publish(this);
             if (applied > 0)
             {
@@ -301,6 +308,7 @@ namespace EasyCombat
             if (healing.Maximum > 0) amount = Math.Min(amount,healing.Maximum);
             if (double.IsNaN(amount) || double.IsInfinity(amount) || amount > float.MaxValue) return new HealingResult(healing,rejection:HealingRejection.Invalid);
             applyingHealing = true;
+            CombatReactionQueue.Enter();
             try
             {
                 var previous = currentHealth;
@@ -317,7 +325,12 @@ namespace EasyCombat
                 healedSignal.Publish(result);
                 return result;
             }
-            finally { applyingHealing = false; }
+            finally
+            {
+                applyingHealing=false;
+                try { FinishDeferredReset(); }
+                finally { CombatReactionQueue.Exit(); }
+            }
         }
 
         public void SetMaximum(float maximum, bool preserveRatio = true)
@@ -330,9 +343,17 @@ namespace EasyCombat
             changedSignal.Publish(new HealthChange(previous, currentHealth, maximumHealth, HealthChangeReason.MaximumChanged));
         }
 
-        /// <summary>Explicit spawn/pool reset. OnEnable deliberately preserves health.</summary>
+        private void FinishDeferredReset()
+        {
+            if(!resetAfterHit || applyingDamage || applyingHealing) return;
+            resetAfterHit=false;
+            if(this!=null) ResetToFull();
+        }
+        /// <summary>A reset requested from the target's damage/healing callbacks runs after notification,
+        /// before queued reactions. Multiple requests in that transaction start one new life.</summary>
         public void ResetToFull()
         {
+            if(applyingDamage || applyingHealing) { resetAfterHit=true; return; }
             EnsureInitialized();
             var previous = currentHealth;
             currentHealth = maximumHealth;
@@ -349,6 +370,7 @@ namespace EasyCombat
         /// <summary>Invalid snapshots leave the existing state untouched. Restore emits no damage/death rewards.</summary>
         public bool RestoreState(HealthSnapshot snapshot)
         {
+            if(applyingDamage || applyingHealing) return false;
             if ((snapshot.Version != 1 && snapshot.Version != 2) || !CombatMath.Positive(snapshot.Maximum) || !CombatMath.Finite(snapshot.Current))
                 return false;
             EnsureInitialized();

@@ -89,9 +89,11 @@ namespace EasyCombat.Tests
         {
             var costs = new[] { new ResourceCost(mana,1) };
             for (var i=0;i<32;i++) { resources.TrySpend(costs); resources.Restore(mana,1); }
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i=0;i<1000;i++) { resources.TrySpend(costs); resources.Restore(mana,1); resources.Advance(.01f); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread()-before,Is.Zero);
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i=0;i<1000;i++) { resources.TrySpend(costs); resources.Restore(mana,1); resources.Advance(.01f); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero);
         }
     }
 }

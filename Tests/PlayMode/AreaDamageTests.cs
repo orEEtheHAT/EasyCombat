@@ -164,9 +164,11 @@ namespace EasyCombat.Tests
             var go = new GameObject("Journal"); cleanup.Add(go); go.AddComponent<CombatJournal>();
             Physics.SyncTransforms(); var query = new AreaDamageQuery(); var shot = Shot(); var settings = new AreaSettings(area);
             for (var i = 0; i < 32; i++) query.Apply(center, Vector3.forward, shot, settings, source.transform);
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) query.Apply(center, Vector3.forward, shot, settings, source.transform);
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero, "Measured warmed query, health and journal; excludes presentation."); yield return null;
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) query.Apply(center, Vector3.forward, shot, settings, source.transform);
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Measured warmed query, health and journal; excludes presentation."); yield return null;
         }
     }
 }

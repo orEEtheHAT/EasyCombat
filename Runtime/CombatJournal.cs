@@ -13,7 +13,7 @@ namespace EasyCombat
         {
             if (actor == null) return default;
             var health = actor.GetComponentInParent<Health>();
-            return health != null ? health.Identity : new CombatActorIdentity(-Math.Abs((long)actor.GetInstanceID()) - 1, actor.name);
+            return health != null ? health.Identity : new CombatActorIdentity(-Math.Abs((long)actor.GetInstanceID()) - 1, CombatNames.Capture(actor));
         }
     }
 
@@ -32,7 +32,7 @@ namespace EasyCombat
             StatusDefinition status = null, bool hasTeam = false, int team = 0, CombatActionOrigin action = default)
         {
             Actor = actor; Attack = attack; Status = status; CastId = castId;
-            AttackName = attack != null ? attack.Label : null; StatusName = status != null ? status.Label : null;
+            AttackName = attack != null ? attack.CapturedLabel : null; StatusName = status != null ? status.CapturedLabel : null;
             HasTeam = hasTeam; Team = team;
             Action = action.Id != 0 ? action : new CombatActionOrigin(castId,castId,0,0,
                 status != null ? CombatOriginKind.Status : attack != null ? CombatOriginKind.Attack : CombatOriginKind.Environment,
@@ -41,7 +41,7 @@ namespace EasyCombat
         private DamageOrigin(in DamageOrigin origin, StatusDefinition status)
         {
             Actor = origin.Actor; Attack = origin.Attack; AttackName = origin.AttackName;
-            CastId = origin.CastId; Status = status; StatusName = status != null ? status.Label : null;
+            CastId = origin.CastId; Status = status; StatusName = status != null ? status.CapturedLabel : null;
             HasTeam = origin.HasTeam; Team = origin.Team;
             Action = origin.Action.Child(CombatOriginKind.Status);
         }
@@ -108,8 +108,8 @@ namespace EasyCombat
                 try { snapshot[i](record); }
                 catch (Exception exception) { Debug.LogException(exception); } // Observability must not cancel death/gameplay events.
             }
-            if(targetHealth!=null) targetHealth.PublishResolved(in record);
-            if(source!=null && source!=targetHealth) source.PublishResolved(in record);
+            if(targetHealth!=null) targetHealth.PublishResolved(in record,target.Id);
+            if(source!=null && source!=targetHealth) source.PublishResolved(in record,result.Damage.Origin.Actor.Id);
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetSubscribers() { handlers = null; listeners = Array.Empty<Action<CombatRecord>>(); }

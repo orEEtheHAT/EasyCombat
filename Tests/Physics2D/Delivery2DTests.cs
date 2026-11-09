@@ -61,6 +61,15 @@ namespace EasyCombat.Tests
             var near=Target(new Vector2(3,0)); var far=Target(new Vector2(7,0)); near.Damaged+=_=>far.ResetToFull(); attack.ContactBehavior=ContactBehavior.PierceTargets;
             Physics2D.SyncTransforms(); emitter.TryFire(origin,Vector2.right); Assert.That(near.Current,Is.EqualTo(90)); Assert.That(far.Current,Is.EqualTo(100));
         }
+        [Test] public void WarmPiercingShotsDoNotAllocate()
+        {
+            var near=Target(new Vector2(3,0)); var far=Target(new Vector2(7,0)); attack.ContactBehavior=ContactBehavior.PierceTargets; attack.MaximumTargets=2;
+            attack.RoundsPerMinute=0; Physics2D.SyncTransforms();
+            void Fire() { near.ResetToFull(); far.ResetToFull(); emitter.TryFire(origin,Vector2.right); }
+            for(int i=0;i<32;i++) Fire();
+            Assert.IsTrue(CombatAllocationMeter.TryMeasure(()=>{for(int i=0;i<100;i++) Fire();},out var events));
+            Assert.AreEqual(0,events); Assert.AreEqual(90,near.Current); Assert.AreEqual(90,far.Current);
+        }
         [Test] public void PoolReusesReturnedProjectileAndClearsActiveExplicitly()
         {
             var prefab=Projectile(); prefab.gameObject.SetActive(false); var pool=Actor("Pool",Vector2.zero).AddComponent<ProjectilePool2D>(); pool.Prefab=prefab; pool.Prewarm(1); attack.Delivery=DamageDelivery.Projectile;

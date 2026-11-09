@@ -16,7 +16,8 @@ namespace EasyCombat.Editor
     {
         public int projectiles, steps, queriesPerStep;
         public double meanMilliseconds, p95Milliseconds;
-        public long allocatedBytes;
+        public long allocatedBytes=-1; // Kept for old report consumers; bytes are not measured.
+        public long allocationEvents=-1;
     }
     [Serializable]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat.Editor", "GamesFactory.Combat.Editor")]
@@ -80,7 +81,6 @@ namespace EasyCombat.Editor
                     const int steps = 120;
                     var samples = new double[steps];
                     var totalTicks = 0L;
-                    var before = GC.GetAllocatedBytesForCurrentThread();
                     for (var step = 0; step < steps; step++)
                     {
                         var start = Stopwatch.GetTimestamp();
@@ -89,7 +89,11 @@ namespace EasyCombat.Editor
                         samples[step] = elapsed * 1000d / Stopwatch.Frequency;
                         totalTicks += elapsed;
                     }
-                    var allocation = GC.GetAllocatedBytesForCurrentThread() - before;
+                    CombatAllocationMeter.TryMeasure(()=>
+                    {
+                        for(var step=0;step<steps;step++)
+                            for(var i=0;i<shots.Length;i++) shots[i].Simulate(1f/60f);
+                    },out var allocation);
                     foreach (var shot in shots)
                         if (!shot.IsFlying) throw new InvalidOperationException("An unexpected collider intersected the diagnostic area. Measurement discarded.");
                     Array.Sort(samples);
@@ -97,7 +101,7 @@ namespace EasyCombat.Editor
                     {
                         projectiles = count, steps = steps, queriesPerStep = count * 2,
                         meanMilliseconds = totalTicks * 1000d / Stopwatch.Frequency / steps,
-                        p95Milliseconds = samples[(int)Math.Ceiling(steps * .95d) - 1], allocatedBytes = allocation
+                        p95Milliseconds = samples[(int)Math.Ceiling(steps * .95d) - 1], allocationEvents = allocation
                     });
                     foreach (var shot in shots)
                     {

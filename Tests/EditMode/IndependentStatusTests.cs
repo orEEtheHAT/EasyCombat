@@ -203,9 +203,11 @@ namespace EasyCombat.Tests
             health.SetMaximum(100000); health.ResetToFull(); status.Duration = .02f; status.TickInterval = .01f;
             for (var i = 0; i < 16; i++) { controller.Apply(status); controller.Apply(status); controller.Advance(.025f); }
             Assert.That(journal.Count, Is.GreaterThan(0));
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++) { controller.Apply(status); controller.Apply(status); controller.Advance(.025f); }
-            Assert.That(GC.GetAllocatedBytesForCurrentThread() - before, Is.Zero, "Warmed stack records, effects and journal only; excludes UI/VFX.");
+            Assert.That(CombatAllocationMeter.TryMeasure(()=>
+            {
+                for (var i = 0; i < 1000; i++) { controller.Apply(status); controller.Apply(status); controller.Advance(.025f); }
+            },out var allocationEvents),Is.True,"GC.Alloc control failed; this environment cannot verify allocations.");
+            Assert.That(allocationEvents,Is.Zero, "Warmed stack records, effects and journal only; excludes UI/VFX.");
         }
         [Test] public void SharedStackRefreshStillRefreshesWholeGroup()
         {

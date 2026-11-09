@@ -16,6 +16,7 @@ namespace EasyCombat
         public string DisplayName;
         public CombatTagDefinition[] Tags = Array.Empty<CombatTagDefinition>();
         public string Label => string.IsNullOrWhiteSpace(DisplayName) ? name : DisplayName;
+        internal string CapturedLabel => string.IsNullOrWhiteSpace(DisplayName) ? CombatNames.Capture(this) : DisplayName;
         public DamageDelivery Delivery = DamageDelivery.Hitscan;
         [Header("Damage")]
         public DamageTypeDefinition DamageType;

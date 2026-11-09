@@ -15,8 +15,7 @@ namespace EasyCombat
         private void Touch(Collider other)
         {
             if(!isActiveAndEnabled || !other || !Effect || !Effect.IsValid) return;
-            for(int i=0;i<occupants.Count;i++) if(occupants[i].Collider==other)
-            { if(occupants[i].Receiver) occupants[i].Receiver.Set(this,Effect); return; }
+            for(int i=0;i<occupants.Count;i++) if(occupants[i].Collider==other) return; // ownership reconciled each physics step, including sleeping contacts
             var receiver=other.GetComponentInParent<MovementInfluences>();
             if(receiver && receiver.isActiveAndEnabled) { occupants.Add(new Occupant {Collider=other,Receiver=receiver}); receiver.Set(this,Effect); }
         }
@@ -25,6 +24,10 @@ namespace EasyCombat
         private void RemoveAt(int i)
         {
             var receiver=occupants[i].Receiver; occupants.RemoveAt(i);
+            ReleaseIfLast(receiver);
+        }
+        private void ReleaseIfLast(MovementInfluences receiver)
+        {
             if(!receiver) return; foreach(var occupant in occupants) if(occupant.Receiver==receiver) return;
             receiver.Release(this);
         }
@@ -36,8 +39,15 @@ namespace EasyCombat
             for(int i=occupants.Count-1;i>=0;i--)
             {
                 var entry=occupants[i];
-                if(!entry.Collider || !entry.Collider.enabled || !entry.Collider.gameObject.activeInHierarchy || !entry.Receiver || !entry.Receiver.isActiveAndEnabled
-                    || !volume.bounds.Intersects(entry.Collider.bounds)) RemoveAt(i);
+                if(!entry.Collider || !entry.Collider.enabled || !entry.Collider.gameObject.activeInHierarchy || !volume.bounds.Intersects(entry.Collider.bounds)) { RemoveAt(i); continue; }
+                var receiver=entry.Collider.GetComponentInParent<MovementInfluences>();
+                if(!receiver || !receiver.isActiveAndEnabled) { RemoveAt(i); continue; }
+                if(receiver!=entry.Receiver)
+                {
+                    var previous=entry.Receiver; entry.Receiver=receiver; occupants[i]=entry;
+                    ReleaseIfLast(previous);
+                }
+                receiver.Set(this,Effect);
             }
         }
         public void CancelForRestore() { foreach(var entry in occupants) if(entry.Receiver) entry.Receiver.Release(this); occupants.Clear(); }

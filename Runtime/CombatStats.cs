@@ -61,7 +61,7 @@ namespace EasyCombat
                     case StatModifierOperation.Multiply: multiply *= m.Value; break;
                 }
             }
-            var statuses = GetComponent<StatusController>();
+            TryGetComponent<StatusController>(out var statuses);
             var status = statuses != null ? statuses.GetStatMultiplier(stat) : 1;
             var result = Math.Max(0, basis + flat) * Math.Max(0, 1 + additive) * multiply * status;
             if (double.IsNaN(result) || double.IsInfinity(result) || result > float.MaxValue) return false;
