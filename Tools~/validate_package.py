@@ -11,6 +11,8 @@ def check(condition, message):
         errors.append(message)
 
 manifest = json.loads((ROOT / 'package.json').read_text(encoding='utf-8-sig'))
+check('com.unity.modules.vehicles' not in manifest.get('dependencies', {}),
+      'Project-specific vehicle simulation must not be a combat package dependency')
 check(manifest['name'] == 'com.oreethehat.easy-combat', 'Unexpected package identity')
 check(manifest['license'] == 'MIT', 'License must match LICENSE.md')
 check((ROOT / 'LICENSE.md').read_text(encoding='utf-8-sig').startswith('MIT License'), 'Missing MIT license')
@@ -19,6 +21,8 @@ for sample in manifest.get('samples', []):
 assemblies = {}
 for path in ROOT.rglob('*.asmdef'):
     data = json.loads(path.read_text(encoding='utf-8-sig'))
+    check(not any(ref.startswith('GamesFactory.') for ref in data.get('references', [])),
+          'Package assembly depends on project code: ' + data['name'])
     check(data['name'] not in assemblies, 'Duplicate assembly: ' + data['name'])
     assemblies[data['name']] = data
 check(assemblies['EasyCombat.Runtime']['references'] == [], 'Core runtime acquired an assembly dependency')

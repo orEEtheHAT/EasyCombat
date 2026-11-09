@@ -1,10 +1,16 @@
 # Changelog
 
+## 0.3.0 — 2026-11-10
+
+- Removed the game-specific sample, generator, wheel simulation and vehicle module dependency from the distributed package. Previously imported sample code belongs to the old version and should be removed or maintained by the consuming project before upgrading.
+- ImpactDurability now processes generic impact requests; projects can override IsProtected for their own rules. SafeHold and RollingDeceleration are no longer package fields. ImpactMeasure.External retains serialized value 3 and accepts caller-defined measurements.
+- Combat health/damage, status-only hits, continuous slowing fields and optional movement integrations remain supported.
+
 ## 0.2.0 — 2026-11-10
 
-- Added physical impact profiles, guarded cargo durability, per-wheel suspension peaks and grounded rolling resistance.
+- Added physical impact profiles and an experimental project-specific integration (see the original v0.2.0 tag).
 - Added source-owned continuous slow fields, volume triggers and a NavMesh gait-speed adapter.
-- Added an optional EasyMovement FPS adapter, local prefab generator a ready-to-use cart kit and a playable Delivery Test Route.
+- Added the optional EasyMovement FPS adapter and local prefab generator.
 - Added real physics, navigation, source cleanup and FPS gait regression tests.
 
 ## 0.1.0 — 2026-10-17

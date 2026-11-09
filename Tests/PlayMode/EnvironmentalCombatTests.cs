@@ -8,7 +8,7 @@ using Object=UnityEngine.Object;
 
 namespace EasyCombat.Tests
 {
-    public sealed class EnvironmentDeliveryTests
+    public sealed class EnvironmentalCombatTests
     {
         private readonly List<Object> owned=new List<Object>();
         private readonly Vector3 origin=new Vector3(-1420,200,-1700);
@@ -19,35 +19,19 @@ namespace EasyCombat.Tests
         { var d=SO<ImpactDamageDefinition>(); d.Measure=measure; d.SafeThreshold=safe; d.DamageByExcess=AnimationCurve.Linear(0,0,20,20); d.MaximumDamage=9; d.RepeatDelay=.5f; return d; }
         [UnityTearDown] public IEnumerator Cleanup()
         { for(int i=owned.Count-1;i>=0;i--) if(owned[i]) Object.Destroy(owned[i]); owned.Clear(); yield return null; }
-        [Test] public void ThresholdCapCooldownLifeAndSafeCompartment()
+        [Test] public void ImpactUsesThresholdCapAndCooldownPerLife()
         {
-            var go=Go("Parcel",Vector3.zero); var hp=go.AddComponent<Health>(); var recv=go.AddComponent<ImpactDurability>();
+            var go=Go("Target",Vector3.zero); var hp=go.AddComponent<Health>(); var recv=go.AddComponent<ImpactDurability>();
             recv.Target=hp; recv.Profile=Impact(ImpactMeasure.NormalSpeed,3);
-            var hold=Go("Hold",Vector3.zero).AddComponent<BoxCollider>(); hold.isTrigger=true; recv.SafeHold=hold;
             bool Hit(float magnitude)=>recv.TryImpact(ImpactMeasure.NormalSpeed,magnitude,go.transform.position,Vector3.up,go.transform.position,out _);
-            Assert.IsFalse(Hit(100)); go.transform.position+=Vector3.right*3; Assert.IsFalse(Hit(3));
+            Assert.IsFalse(Hit(3));
             Assert.IsTrue(Hit(100)); Assert.AreEqual(91,hp.Current); Assert.IsFalse(Hit(100));
             hp.ResetToFull(); Assert.IsTrue(Hit(5)); Assert.That(hp.Current,Is.EqualTo(98).Within(.001));
         }
-        [Test] public void EachWheelChargesOnlyItsOwnLoadPulse()
-        {
-            var cart=Go("Cart",Vector3.zero); var body=cart.AddComponent<Rigidbody>(); body.isKinematic=true;
-            WheelContactSource Make(string name)
-            {
-                var go=Go(name,Vector3.zero); go.transform.SetParent(cart.transform); var hp=go.AddComponent<Health>();
-                var d=go.AddComponent<ImpactDurability>(); d.Target=hp; d.Profile=Impact(ImpactMeasure.SuspensionLoad,5);
-                var w=go.AddComponent<WheelContactSource>(); w.Durability=d; return w;
-            }
-            var left=Make("Left"); var right=Make("Right");
-            void Sample(WheelContactSource w,float load)=>w.SampleLoad(true,load,100,origin,Vector3.up);
-            for(int i=0;i<8;i++) { Sample(left,100); Sample(right,100); }
-            Sample(left,109); Sample(left,115); Sample(left,110); Sample(left,100);
-            Assert.AreEqual(91,left.GetComponent<Health>().Current); Assert.AreEqual(100,right.GetComponent<Health>().Current);
-        }
-        [UnityTest] public IEnumerator FallingParcelTakesDamageOnlyOnLanding()
+        [UnityTest] public IEnumerator FallingTargetTakesDamageOnlyOnLanding()
         {
             var ground=Go("Road",Vector3.down); ground.AddComponent<BoxCollider>().size=new Vector3(8,1,8);
-            var go=Go("Dropped parcel",Vector3.up*3); go.AddComponent<BoxCollider>(); var body=go.AddComponent<Rigidbody>();
+            var go=Go("Falling target",Vector3.up*3); go.AddComponent<BoxCollider>(); var body=go.AddComponent<Rigidbody>();
             var hp=go.AddComponent<Health>(); var recv=go.AddComponent<ImpactDurability>(); recv.Target=hp; recv.Profile=Impact(ImpactMeasure.DropHeight,1);
             var source=go.AddComponent<RigidbodyImpactSource>(); source.Receiver=recv;
             yield return new WaitForFixedUpdate(); Assert.AreEqual(100,hp.Current);
@@ -68,7 +52,7 @@ namespace EasyCombat.Tests
             var actors=new Health[2];
             for(int i=0;i<2;i++)
             {
-                var go=Go("Fragile load",new Vector3(i*2,3,0)); go.AddComponent<BoxCollider>(); var rb=go.AddComponent<Rigidbody>(); rb.mass=2;
+                var go=Go("Target",new Vector3(i*2,3,0)); go.AddComponent<BoxCollider>(); var rb=go.AddComponent<Rigidbody>(); rb.mass=2;
                 var hp=actors[i]=go.AddComponent<Health>(); var receiver=go.AddComponent<ImpactDurability>(); receiver.Target=hp;
                 receiver.Profile=Impact(i==0 ? ImpactMeasure.NormalSpeed : ImpactMeasure.NormalImpulse,1);
                 go.AddComponent<RigidbodyImpactSource>().Receiver=receiver;
@@ -78,15 +62,15 @@ namespace EasyCombat.Tests
         }
         [UnityTest] public IEnumerator CompoundActorKeepsVolumeUntilLastColliderLeaves()
         {
-            var mud=Go("Volume",Vector3.zero); var volume=mud.AddComponent<BoxCollider>(); volume.size=Vector3.one*3; volume.isTrigger=true;
-            mud.AddComponent<MovementSurface>().Effect=Effect(.5f);
+            var zone=Go("Volume",Vector3.zero); var volume=zone.AddComponent<BoxCollider>(); volume.size=Vector3.one*3; volume.isTrigger=true;
+            zone.AddComponent<MovementSurface>().Effect=Effect(.5f);
             var actor=Go("Compound motor",Vector3.zero); var rb=actor.AddComponent<Rigidbody>(); rb.isKinematic=true;
             var receiver=actor.AddComponent<MovementInfluences>(); var a=Go("Foot A",Vector3.zero); var b=Go("Foot B",Vector3.right*.5f);
             a.transform.SetParent(actor.transform,true); b.transform.SetParent(actor.transform,true); a.AddComponent<BoxCollider>(); b.AddComponent<BoxCollider>();
             Physics.SyncTransforms(); yield return new WaitForFixedUpdate(); yield return new WaitForFixedUpdate();
             Assert.AreEqual(.5f,receiver.Multiplier); a.transform.position+=Vector3.right*8; Physics.SyncTransforms();
             yield return new WaitForFixedUpdate(); yield return new WaitForFixedUpdate(); Assert.AreEqual(.5f,receiver.Multiplier);
-            mud.SetActive(false); Assert.AreEqual(1,receiver.Multiplier);
+            zone.SetActive(false); Assert.AreEqual(1,receiver.Multiplier);
         }
         [Test] public void OverlappingConesReleaseOnlyTheirOwnSlowAndNeverDealDamage()
         {
@@ -113,17 +97,6 @@ namespace EasyCombat.Tests
                 adapter.BaseSpeed=8; Assert.AreEqual(4,agent.speed); receiver.Release(adapter); adapter.Refresh(); Assert.AreEqual(8,agent.speed);
             }
             finally { if(go) go.SetActive(false); nav.Remove(); }
-        }
-        [UnityTest] public IEnumerator MudOnlySlowsGroundTangentAndOnlyInside()
-        {
-            var volume=Go("Mud",Vector3.zero); var box=volume.AddComponent<BoxCollider>(); box.isTrigger=true; box.size=Vector3.one*3;
-            var surface=volume.AddComponent<MovementSurface>(); surface.Effect=Effect(.5f); surface.Effect.RollingDeceleration=5;
-            var go=Go("Cart",Vector3.zero); var body=go.AddComponent<Rigidbody>(); body.useGravity=false; body.linearDamping=0;
-            var wheel=go.AddComponent<RollingResistance>(); wheel.Body=body; wheel.LoadShare=1; body.linearVelocity=new Vector3(3,2,0);
-            Physics.SyncTransforms(); Assert.IsFalse(wheel.ApplyGroundContact(origin+Vector3.forward*8,Vector3.up,Time.fixedDeltaTime));
-            Assert.IsTrue(wheel.ApplyGroundContact(origin,Vector3.up,Time.fixedDeltaTime));
-            yield return new WaitForFixedUpdate(); yield return null;
-            Assert.That(body.linearVelocity.x,Is.LessThan(3)); Assert.That(body.linearVelocity.y,Is.EqualTo(2).Within(.001));
         }
     }
 }

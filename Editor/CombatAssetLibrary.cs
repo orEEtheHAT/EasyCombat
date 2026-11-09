@@ -180,7 +180,7 @@ namespace EasyCombat.Editor
                         if (status.Status == null) issues.Add("В списке попадания есть пустой статус.");
             }
             if (asset is ImpactDamageDefinition impact && !impact.IsValid) issues.Add("Укажи неотрицательный порог, кривую и положительный предел урона.");
-            if (asset is MovementInfluenceDefinition influence && !influence.IsValid) issues.Add("Проверь множитель скорости и сопротивление качению.");
+            if (asset is MovementInfluenceDefinition influence && !influence.IsValid) issues.Add("Множитель скорости должен быть конечным числом от 0 до 1.");
             if (asset is CombatPresentationDefinition presentation && !presentation.IsValid) issues.Add("Правилам вывода нужны уникальные Kind и корректные бюджеты.");
             if (asset is CombatScenarioDefinition scenario && !scenario.IsValid) issues.Add("Сценарию нужны корректные атака, здоровье цели и сроки расчёта.");
             if (asset is CombatDefinitionCatalog catalog && !catalog.Validate()) issues.Add("Каталогу нужны уникальные ID/ассеты и ключ совместимости.");

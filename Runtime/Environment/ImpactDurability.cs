@@ -3,23 +3,17 @@ using UnityEngine;
 namespace EasyCombat
 {
     [DisallowMultipleComponent, AddComponentMenu("EasyCombat/Environment/Impact Durability")]
-    public sealed class ImpactDurability : MonoBehaviour
+    public class ImpactDurability : MonoBehaviour
     {
         public Health Target;
         public ImpactDamageDefinition Profile;
-        [Tooltip("Optional cargo compartment. While the cargo's center is inside this box, incoming impact samples are ignored.")]
-        public BoxCollider SafeHold;
         private long life;
         private double next;
         private void Awake() { if(!Target) Target=GetComponent<Health>(); }
         private void OnEnable() { next=double.NegativeInfinity; }
-        public bool IsProtected(Vector3 center)
-        {
-            if(!SafeHold || !SafeHold.enabled || !SafeHold.gameObject.activeInHierarchy) return false;
-            var p=SafeHold.transform.InverseTransformPoint(center)-SafeHold.center; var half=SafeHold.size*.5f;
-            return Mathf.Abs(p.x)<=half.x && Mathf.Abs(p.y)<=half.y && Mathf.Abs(p.z)<=half.z;
-        }
-        // Also the entry point for custom raycast suspensions or a separate controller's landing event.
+        /// <summary>Optional game-side veto before applying impact damage. The default accepts any position.</summary>
+        public virtual bool IsProtected(Vector3 center) => false;
+        // Sources can also feed a measured impact directly, without a Rigidbody callback.
         public bool TryImpact(ImpactMeasure measure,float magnitude,Vector3 point,Vector3 normal,Vector3 center,out DamageResult result)
         {
             result=default;

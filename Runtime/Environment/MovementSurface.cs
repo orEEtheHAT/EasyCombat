@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace EasyCombat
 {
-    // Use one primitive trigger per volume. Wheel sampling uses the actual ground contact, not chassis overlap.
-    [DisallowMultipleComponent,AddComponentMenu("EasyCombat/Environment/Mud or Slow Volume")]
+    // Use one trigger collider per effect volume.
+    [DisallowMultipleComponent,AddComponentMenu("EasyCombat/Environment/Slow Volume")]
     public sealed class MovementSurface : MonoBehaviour,ICombatTransient
     {
         public MovementInfluenceDefinition Effect;

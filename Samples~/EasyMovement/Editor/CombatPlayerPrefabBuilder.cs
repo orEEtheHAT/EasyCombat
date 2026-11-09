@@ -8,7 +8,7 @@ namespace EasyCombat.Integrations.Editor
 {
     public static class CombatPlayerPrefabBuilder
     {
-        [MenuItem("EasyCombat/Delivery/Create EasyMovement Combat Player")]
+        [MenuItem("EasyCombat/Integrations/Create EasyMovement Combat Player")]
         public static void Create() => CreatePrefab();
         public static string CreatePrefab(CombatStatDefinition speedStat=null)
         {

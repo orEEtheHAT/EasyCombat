@@ -6,7 +6,7 @@ namespace EasyCombat
     public sealed class RigidbodyImpactSource : MonoBehaviour
     {
         public ImpactDurability Receiver;
-        [Tooltip("Optional specific physical wheel collider on this body. Chassis contacts are excluded.")]
+        [Tooltip("Optional specific collider on this body. Contacts from other colliders are excluded.")]
         public Collider OwnCollider;
         public LayerMask SurfaceLayers=~0;
         [Range(0,1)] public float MinimumLandingNormal=.5f;
@@ -31,7 +31,7 @@ namespace EasyCombat
         {
             if(!isActiveAndEnabled || !Receiver || !Receiver.Profile || hit.contactCount==0) return;
             var mode=Receiver.Profile.Measure;
-            if(mode==ImpactMeasure.SuspensionLoad) return;
+            if(mode==ImpactMeasure.External) return;
             var up=Up; Vector3 center=body.worldCenterOfMass;
             if(mode==ImpactMeasure.DropHeight) SampleHeight();
             float best=-1; ContactPoint contact=default; bool mixed=false;
@@ -49,7 +49,7 @@ namespace EasyCombat
             }
             if(best<0) return;
             if(mode==ImpactMeasure.DropHeight) apex=Vector3.Dot(center,up);
-            // Unity reports one pair impulse. Never assign an ambiguous chassis impulse to a selected wheel.
+            // The total pair impulse cannot be attributed to a single collider in a mixed contact.
             if(enter && !(mode==ImpactMeasure.NormalImpulse && mixed))
                 Receiver.TryImpact(mode,best,contact.point,contact.normal,center,out _);
         }

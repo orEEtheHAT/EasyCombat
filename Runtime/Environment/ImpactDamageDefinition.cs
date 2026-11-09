@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace EasyCombat
 {
-    public enum ImpactMeasure { NormalSpeed, NormalImpulse, DropHeight, SuspensionLoad }
+    public enum ImpactMeasure { NormalSpeed=0, NormalImpulse=1, DropHeight=2, External=3 }
     [CreateAssetMenu(menuName="EasyCombat/Environment/Impact Damage")]
     public sealed class ImpactDamageDefinition : ScriptableObject
     {
@@ -13,7 +13,7 @@ namespace EasyCombat
         public AnimationCurve DamageByExcess = AnimationCurve.Linear(0, 0, 10, 50);
         [Min(0)] public float MaximumDamage = 100;
         [Min(0)] public float RepeatDelay = .15f;
-        public bool IsValid => Measure>=ImpactMeasure.NormalSpeed && Measure<=ImpactMeasure.SuspensionLoad
+        public bool IsValid => Measure>=ImpactMeasure.NormalSpeed && Measure<=ImpactMeasure.External
             && CombatMath.Finite(SafeThreshold) && SafeThreshold>=0 && CombatMath.Positive(MaximumDamage)
             && CombatMath.Finite(RepeatDelay) && RepeatDelay>=0 && DamageByExcess!=null && DamageByExcess.length>0;
         public float Evaluate(float magnitude)
