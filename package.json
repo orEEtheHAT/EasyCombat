@@ -1,7 +1,7 @@
 {
   "name": "com.oreethehat.easy-combat",
   "displayName": "EasyCombat",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "unity": "6000.3",
   "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
   "author": {
@@ -26,6 +26,11 @@
       "displayName": "Combat Lab",
       "description": "Shooter, swept melee, 100/500/1000 projectile volleys and poison combination, with bounded presentation. No third-party dependencies.",
       "path": "Samples~/CombatLab"
+    },
+    {
+      "displayName": "Attack Gallery",
+      "description": "Ten editable attack recipes and a ready-to-play firing range. Try a sword sweep, fireball with burning ground, chain orb, beam and more.",
+      "path": "Samples~/AttackGallery"
     },
     {
       "displayName": "Easy Feedbacks Adapter",

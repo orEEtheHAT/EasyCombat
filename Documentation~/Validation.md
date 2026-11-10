@@ -1,5 +1,9 @@
 # Release validation
 
+## 0.6.0 — 2026-11-10
+
+All ten Attack Gallery recipes passed their PlayMode checks in Unity 6000.3.22f1. In a Windows player configured for the new Input System, mouse clicks selected Fireball and activated Attack. The front target went from 500 to 476 HP after the explosion and first ground pulse, and one burning field was active.
+
 ## 0.5.0 — 2026-11-10
 
 With EasyMovement and ECM2 installed, both EasyMovement adapter PlayMode tests passed. The tests cover speed scaling across gaits, movement and jump restrictions, body yaw, and knockback while movement is restricted. The prefab generator produced a combat player with its camera and look pivot references intact.

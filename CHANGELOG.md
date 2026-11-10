@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0 — 2026-11-10
+
+- Added the optional Attack Gallery sample with a playable range and ten named attack presets, including a swept sword and an explosive fireball that leaves burning ground.
+
 ## 0.5.0 — 2026-11-10
 
 - Removed the standalone ECM2 Adapter and consolidated player movement integration into the EasyMovement Adapter sample. Its FPS controller handles gait scaling, combat restrictions and knockback/pull. See the [sample README](Samples~/EasyMovement/README.md) when migrating previously imported adapter components.

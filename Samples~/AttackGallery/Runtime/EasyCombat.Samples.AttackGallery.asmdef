@@ -1,0 +1,5 @@
+{
+  "name": "EasyCombat.Samples.AttackGallery",
+  "rootNamespace": "EasyCombat.Samples",
+  "references": ["EasyCombat.Runtime"]
+}

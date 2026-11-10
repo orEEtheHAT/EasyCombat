@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a72e2de96da6e47be721d735310257, type: 3}
+  m_Name: ChainOrbMotion_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.ProjectileMotionDefinition
+  Homing: 0
+  AutoAcquire: 1
+  TurnDegreesPerSecond: 360
+  SearchArea: {fileID: 11400000, guid: 806f2c1064d36a4418e71c13444b0db1, type: 2}
+  Ricochets: 0
+  RicochetDamageMultiplier: 1
+  ChainJumps: 2
+  ChainDamageMultiplier: 0.7
+  ReturnAfterSeconds: 0
+  CatchRadius: 0.3
+  HitAgainOnReturn: 1
+  MaximumStep: 0.05

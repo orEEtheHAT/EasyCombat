@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6175b71a47b2ea046bec392684c0a025, type: 3}
+  m_Name: FrostConeArea_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.AreaDefinition
+  Shape: 1
+  Radius: 5.2
+  ConeAngle: 80
+  DistanceFalloff: 0
+  EdgeMultiplier: 0.25
+  TargetMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  Triggers: 1
+  Targets: 0
+  AffectOwner: 0
+  RequireLineOfSight: 0
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  UseHurtboxMultiplier: 0

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2616bbb2cb0e48bb1d5f5c5e21bef, type: 3}
+  m_Name: Poisoned_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.StatusDefinition
+  DisplayName: Poisoned
+  Tags: []
+  Restrictions: 0
+  Color: {r: 1, g: 0.5, b: 0.15, a: 1}
+  Icon: {fileID: 0}
+  Duration: 4
+  TickInterval: 1
+  Stacking: 3
+  MaximumStacks: 3
+  StackOverflow: 1
+  TickEffects:
+  - {fileID: 11400000, guid: 5d2c6a8988536c545acff54e2824a778, type: 2}
+  StatModifiers: []
+  ResistanceModifiers: []

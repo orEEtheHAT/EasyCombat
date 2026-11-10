@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8aefd18f21c3a5b43a3cb30a89af570f, type: 3}
+  m_Name: FireballGroundSpawn_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.AreaSpawnDefinition
+  Pulses: {fileID: 11400000, guid: 0dc8fdadcac907a499528c01c74a4d0a, type: 2}
+  Prefab: {fileID: 2246666288699007376, guid: 1878100b6dc147440977942894bff77b, type: 3}
+  Trigger: 0
+  Placement: 1
+  GroundMask:
+    serializedVersion: 2
+    m_Bits: 1
+  ProbeHeight: 1
+  GroundDistance: 5
+  MaximumSlope: 50
+  SurfaceOffset: 0.03

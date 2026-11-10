@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3a67b00a8f14e745be095b48463648b, type: 3}
+  m_Name: SiegeDamage_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.DamageFormulaDefinition
+  Terms:
+  - Type: {fileID: 11400000, guid: 9d006dc4fd5d92240b2cf2be11fb01e1, type: 2}
+    Basis: 0
+    Minimum: 6
+    Maximum: 6
+    MaximumDamage: 0
+    IgnoreCritical: 0
+    Stat: {fileID: 0}
+    Sampling: 0
+    HitStage: 2
+    FilterHitType: 0
+    HitType: {fileID: 0}
+  - Type: {fileID: 11400000, guid: 9d006dc4fd5d92240b2cf2be11fb01e1, type: 2}
+    Basis: 3
+    Minimum: 0.08
+    Maximum: 0.08
+    MaximumDamage: 30
+    IgnoreCritical: 0
+    Stat: {fileID: 0}
+    Sampling: 0
+    HitStage: 2
+    FilterHitType: 0
+    HitType: {fileID: 0}

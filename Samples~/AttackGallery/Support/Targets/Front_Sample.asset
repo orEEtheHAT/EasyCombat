@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 243e266038fb66e42b51b82019c03570, type: 3}
+  m_Name: Front_Sample
+  m_EditorClassIdentifier: EasyCombat.Runtime::EasyCombat.HealthDefinition
+  MaximumHealth: 500
+  Resistances: {fileID: 0}
+  HitRules: {fileID: 0}
+  Defense: {fileID: 0}
+  LifeRules: {fileID: 0}
+  PreventHealing: 0
+  ReceivedHealingMultiplierStat: {fileID: 0}
+  StatusDefense: {fileID: 0}
+  StatusImmunities: []
