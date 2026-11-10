@@ -126,8 +126,6 @@ namespace EasyCombat
             get
             {
                 if (UsesFormula) return Formula.IsValidForAttack;
-                if (ChannelCount > DamageAmounts.Capacity) return false;
-                for (var i = 0; i < ChannelCount; i++) if (!GetChannel(i).IsValid) return false;
                 if (StatusOnly)
                 {
                     if (OnHitStatuses == null) return false;
@@ -135,8 +133,20 @@ namespace EasyCombat
                         if (application.Status != null && application.Status.IsValid && application.Chance > 0 && application.Chance <= 1) return true;
                     return false;
                 }
-                return CombatMath.Positive(TotalMinimum) && CombatMath.Positive(TotalMaximum)
-                    && CombatMath.Finite(TotalMaximum * CriticalMultiplier);
+                float minimum = MinimumDamage, maximum = MaximumDamage;
+                if (DamageChannels != null && DamageChannels.Length > 0)
+                {
+                    if (DamageChannels.Length > DamageAmounts.Capacity) return false;
+                    minimum = maximum = 0;
+                    foreach (var channel in DamageChannels)
+                    {
+                        if (!channel.IsValid) return false;
+                        minimum += channel.Minimum;
+                        maximum += channel.Maximum;
+                    }
+                }
+                return CombatMath.Positive(minimum) && CombatMath.Positive(maximum) && maximum >= minimum
+                    && CombatMath.Finite(maximum * CriticalMultiplier);
             }
         }
         public bool IsValid => (Protection == null || Protection.IsValid) && (Tags == null || Tags.Length <= CombatTagSet.Capacity) && ValidPayload && CombatMath.Positive(Range)

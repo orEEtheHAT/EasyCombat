@@ -40,6 +40,28 @@ namespace EasyCombat.Tests
             serialized.FindProperty("maximumIndependentStackRecords").intValue = limit;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+        [TestCase(StatusStacking.Independent)]
+        [TestCase(StatusStacking.IgnoreWhileActive)]
+        public void RejectedRandomizedStatusPreservesRandomSequenceAndOriginalStack(StatusStacking stacking)
+        {
+            status.Stacking = stacking;
+            status.MaximumStacks = 1;
+            var dot = (PeriodicDamageEffect)status.TickEffects[0];
+            dot.Formula = Asset<DamageFormulaDefinition>();
+            dot.Formula.Terms = new[] { new DamageFormulaTerm(fire, StatusDamageBasis.Fixed, 2) { Maximum = 6 } };
+            var expected = new SeededCombatRandom(123);
+            var strength = Mathf.Lerp(2, 6, expected.NextUnit());
+            expected.NextUnit();
+            using (new CombatExecutionScope(new SeededCombatRandom(123)))
+            {
+                Assert.IsTrue(controller.Apply(status));
+                Assert.IsFalse(controller.Apply(status));
+                Assert.AreEqual(expected.NextUnit(), CombatRandom.Value);
+                Assert.IsTrue(controller.TryGetStackDamage(status, 0, 0, out float actual));
+                Assert.AreEqual(strength, actual);
+            }
+        }
+
         [Test] public void NewDefinitionsDefaultToIndependentWithoutReinterpretingLegacyAssets()
         {
             Assert.That(status.Stacking, Is.EqualTo(StatusStacking.Independent));

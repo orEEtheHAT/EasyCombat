@@ -29,14 +29,18 @@ namespace EasyCombat
         internal int Collect(Vector3 origin, Vector3 direction, float distance, float radius,
             LayerMask mask, QueryTriggerInteraction triggers, Transform owner)
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.TraceContacts.Auto();
+#endif
             contacts.Clear();
             var overlapCount = 0;
+            var scene = CombatPhysics.Scene;
             try
             {
                 while (true)
                 {
                     CountTravelQuery();
-                    overlapCount = CombatPhysics.Scene.OverlapSphere(origin, Mathf.Max(radius, .001f), overlaps, mask, triggers);
+                    overlapCount = scene.OverlapSphere(origin, Mathf.Max(radius, .001f), overlaps, mask, triggers);
                     if (overlapCount < overlaps.Length) break;
                     Array.Resize(ref overlaps, overlaps.Length * 2);
                 }
@@ -53,8 +57,8 @@ namespace EasyCombat
                     {
                         CountTravelQuery();
                         count = radius > 0
-                            ? CombatPhysics.Scene.SphereCast(origin, radius, direction, hits, distance, mask, triggers)
-                            : CombatPhysics.Scene.Raycast(origin, direction, hits, distance, mask, triggers);
+                            ? scene.SphereCast(origin, radius, direction, hits, distance, mask, triggers)
+                            : scene.Raycast(origin, direction, hits, distance, mask, triggers);
                         if (count < hits.Length) break;
                         Array.Resize(ref hits, hits.Length * 2);
                     }
@@ -76,7 +80,7 @@ namespace EasyCombat
         }
 
         private static bool IsOwner(Collider collider, Transform owner) =>
-            owner != null && (collider.transform == owner || collider.transform.IsChildOf(owner));
+            owner != null && collider.transform.IsChildOf(owner);
 
         public bool Cast(Vector3 origin, Vector3 direction, float distance, float radius,
             LayerMask mask, QueryTriggerInteraction triggers, Transform owner, out RaycastHit closest)
@@ -165,9 +169,9 @@ namespace EasyCombat
             WasTarget = Receiver != null && !(Receiver is Hurtbox) && Receiver is IDamageable;
             if (!WasTarget) Receiver = null;
             HitKey=WasTarget ? new CombatHitKey(Receiver) : default;
-            life=WasTarget ? CombatTargetGroups.Life(Receiver) : 0;
+            life=WasTarget && !(Receiver is Health) ? CombatTargetGroups.Life(Receiver) : 0;
         }
-        public bool IsCurrent=>!WasTarget || Receiver!=null && (life==0 || CombatTargetGroups.Life(Receiver)==life) && HitKey.Equals(new CombatHitKey(Receiver));
+        public bool IsCurrent=>!WasTarget || Receiver!=null && HitKey.MatchesLife(Receiver,life);
 
         public DamageImpact Apply(DamageInfo damage)
         {

@@ -17,7 +17,6 @@ namespace EasyCombat
         private int exactSteps, visitedCount;
         private CombatHitKey first, second, third, fourth;
         private HashSet<CombatHitKey> overflow;
-        private AreaDamageQuery areaQuery;
         private AreaSettings area;
         private AreaSpawnSnapshot spawnedArea;
         private DamageAreaPool areaPool;
@@ -77,8 +76,14 @@ namespace EasyCombat
             area = new AreaSettings(attack.Area);
             spawnedArea = new AreaSpawnSnapshot(attack.ImpactArea, request.Source, request.Origin);
             areaPool = fieldPool;
-            if (area.Enabled && areaQuery == null) areaQuery = new AreaDamageQuery();
             Active = true;
+        }
+
+        internal void ResetDistantContactHint(Transform previousPose, Vector3 launchPosition)
+        {
+            if (exactSteps > 0 && previousPose != null &&
+                (previousPose.position - launchPosition).sqrMagnitude > Mathf.Max(1f, 4 * Radius * Radius))
+                exactSteps = 0;
         }
 
         private bool EmptyShortStep(Vector3 origin,Vector3 end,float distance)
@@ -87,7 +92,7 @@ namespace EasyCombat
             // A false positive falls back to exact queries. Never remember empty *space* across steps.
             // Avoid an extra query on repeated contacts (including when a pooled shot is relaunched).
             if(exactSteps>0) { exactSteps--; return false; }
-            if(distance<=0 || distance>Mathf.Max(1f,4*Radius)) return false;
+            if(distance<=0 || distance>Mathf.Max(2f,4*Radius)) return false;
             float extent=ProbeRadius;
             if(!CombatMath.Finite(extent) || !CombatMath.Finite(end)) return false;
             DamageQuery.CountTravelQuery();
@@ -121,7 +126,7 @@ namespace EasyCombat
                     // Commit before callbacks: rejected damage still consumes a physical contact.
                     if (stop) { Active = false; end = origin + direction * contact.Distance; }
                     if (area.Enabled)
-                        areaQuery.Apply(contact.Point + contact.Normal * .001f, direction, damage, area, owner, onImpact);
+                        AreaDamageQuery.ApplyTransient(contact.Point + contact.Normal * .001f, direction, damage, area, owner, onImpact);
                     else
                     {
                         var impact = contact.Apply(damage.At(contact.Point, direction));
@@ -144,7 +149,7 @@ namespace EasyCombat
             // Preserve legacy miss explosions, but never add a phantom blast after piercing real targets.
             if (area.Enabled && contactCount == 0)
             {
-                areaQuery.Apply(end, direction, damage, area, owner, onImpact);
+                AreaDamageQuery.ApplyTransient(end, direction, damage, area, owner, onImpact);
                 if (spawnedArea.Enabled && areaPool != null) areaPool.Spawn(spawnedArea, end, Vector3.up, direction, owner);
             }
         }

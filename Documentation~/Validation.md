@@ -1,5 +1,11 @@
 # Release validation
 
+## 0.4.1 — 2026-11-10
+
+Unity 6000.3.22f1 passed 352 EditMode and 164 PlayMode tests in an isolated project. The suite covers projectile callbacks that move a target during a mixed volley, nested blasts, and rejected status applications that consume random rolls.
+
+Windows x64 release players matched gameplay counters and health loss across eight fixed-step workloads. A separate real-time CPU capture exercised a mixed wave of 100,000 shots, firing 256 shots per frame.
+
 ## 0.4.0 — 2026-11-10
 
 Unity 6000.3.22f1 passed 349 EditMode and 160 PlayMode tests in an isolated project. Windows x64 players ran both projectile execution modes. A Unity 6.3 Web player configured for Parallel used Single Thread and applied 8 damage at the blast center and 4 at half radius.

@@ -123,6 +123,9 @@ namespace EasyCombat
 
         internal void Advance(float deltaTime, ProjectileExecutionMode mode)
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.ProjectileBatch.Auto();
+#endif
             if (advancing || !CombatMath.Finite(deltaTime) || deltaTime < 0) return;
             Compact();
             int count = entries.Count;
@@ -135,29 +138,34 @@ namespace EasyCombat
                 if (first == count) return;
                 // Re-read scene settings after any callbacks from the leading shots.
 #pragma warning disable CS0618
-                bool useProbes = parallelFlight && !Physics.autoSyncTransforms;
+                bool canProbe = parallelFlight && !Physics.autoSyncTransforms;
 #pragma warning restore CS0618
                 EnsureCapacity(count - first);
                 int planned = 0;
+                int runStart = first, probeStart = first, probeCount = 0;
                 var scene = CombatPhysics.Scene;
                 for (int i = first; i < count; i++)
                 {
                     var entry = entries[i];
-                    if (entry.Shot == null) continue;
+                    if (entry.Shot == null) { runStart = i + 1; continue; }
                     entry.PlanIndex = -1;
                     if (deltaTime > 0 && entry.Shot.TryCaptureFlight(out var flight))
                     {
                         entry.PlanIndex = planned;
-                        if (useProbes)
+                        if (canProbe && entry.Shot is DamageProjectile shot)
                         {
-                            if (entry.Shot is DamageProjectile shot) probes[planned] = shot.CreateProbe(scene);
-                            else useProbes = false;
+                            int runLength = i - runStart + 1;
+                            if (runLength > probeCount) { probeStart = runStart; probeCount = runLength; }
+                            if (runStart == first) probes[planned] = shot.CreateProbe(scene);
                         }
+                        else runStart = i + 1;
                         flights[planned++] = flight;
                     }
-                    else useProbes = false;
+                    else runStart = i + 1;
                     entries[i] = entry;
                 }
+                bool useProbes = probeCount > 0 && probeCount == count - first;
+                bool probeMixedRun = !useProbes && probeCount >= 32;
                 if (planned > 0)
                 {
                     var job = new ProjectileFlightJob { Flights = flights, Steps = steps, DeltaTime = deltaTime, Probes = probes, PrepareProbes = useProbes };
@@ -178,19 +186,28 @@ namespace EasyCombat
                 // Process in launch order. Removals leave tombstones and newly launched shots wait one tick.
                 for (int i = first; i < count; i++)
                 {
+                    // Capture the longest straight run only after older guided shots and their callbacks.
+                    // A live contact inside the run invalidates the remaining speculative results.
+                    if (probeMixedRun && i == probeStart)
+                    {
+                        probeCount = ProbeStraightRun(probeStart, probeCount);
+                        useProbes = probeCount > 0;
+                    }
+                    if (i >= probeStart + probeCount) useProbes = false;
                     var entry = entries[i];
                     if (entry.Shot == null) continue;
                     try
                     {
-                        if (useProbes && entry.PlanIndex >= 0 && probeHits[entry.PlanIndex].instanceID == 0
-                            && entry.Shot is DamageProjectile emptyShot && emptyShot.IsAtProbeStart(probes[entry.PlanIndex].point0))
+                        int probeIndex = i - probeStart;
+                        if (useProbes && entry.PlanIndex >= 0 && probeHits[probeIndex].instanceID == 0
+                            && entry.Shot is DamageProjectile emptyShot && emptyShot.IsAtProbeStart(probes[probeIndex].point0))
                         {
-                            useProbes = emptyShot.CommitEmpty(steps[entry.PlanIndex], probes[entry.PlanIndex].point0);
+                            useProbes = emptyShot.CommitEmpty(steps[entry.PlanIndex], probes[probeIndex].point0);
                             continue;
                         }
                         // From the first live resolution on, a callback can move, spawn or recycle any collider.
                         // Requery the remaining shots against the live scene, including initial overlaps.
-                        if (useProbes) RememberContactRegion(first, planned);
+                        if (useProbes) RememberContactRegion(probeStart, probeCount);
                         useProbes = false;
                         if (entry.PlanIndex >= 0) entry.Shot.CommitFlight(steps[entry.PlanIndex]);
                         else entry.Shot.Simulate(deltaTime);
@@ -204,6 +221,26 @@ namespace EasyCombat
                 Compact();
                 if (!isActiveAndEnabled) ReleaseBuffers();
             }
+        }
+
+        private int ProbeStraightRun(int start, int length)
+        {
+#pragma warning disable CS0618
+            if (Physics.autoSyncTransforms) return 0;
+#pragma warning restore CS0618
+            var scene = CombatPhysics.Scene;
+            int count = 0;
+            for (; count < length; count++)
+            {
+                var entry = entries[start + count];
+                if (entry.PlanIndex < 0 || !(entry.Shot is DamageProjectile shot)) break;
+                var command = shot.CreateProbe(scene);
+                command.point1 = command.point0 + steps[entry.PlanIndex].Offset;
+                probes[count] = command;
+            }
+            if (count < 32) return 0;
+            OverlapCapsuleCommand.ScheduleBatch(probes.GetSubArray(0,count), probeHits.GetSubArray(0,count), 32, 1).Complete();
+            return count;
         }
 
         private void RememberContactRegion(int first, int planned)

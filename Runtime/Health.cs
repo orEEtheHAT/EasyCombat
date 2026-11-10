@@ -24,6 +24,19 @@ namespace EasyCombat
         private CombatLifeState lifeState;
         private ResourceSpendReceipt pendingDefenseCosts;
         private StatusController statuses;
+        private DamageRedirector attachedRedirector;
+        private CombatDamageModifiers attachedModifiers;
+        private bool attachmentsBound;
+        internal void Attach(DamageRedirector component) => attachedRedirector = component;
+        internal void Attach(CombatDamageModifiers component) => attachedModifiers = component;
+        internal void Detach(DamageRedirector component)
+        {
+            if (ReferenceEquals(attachedRedirector, component)) attachedRedirector = null;
+        }
+        internal void Detach(CombatDamageModifiers component)
+        {
+            if (ReferenceEquals(attachedModifiers, component)) attachedModifiers = null;
+        }
         private CombatActorIdentity identity;
         public CombatActorIdentity Identity { get { EnsureInitialized(); return identity; } }
 
@@ -67,8 +80,22 @@ namespace EasyCombat
         internal void PublishResolved(in CombatRecord record,long life)=>resolvedSignal.Publish(record,this,life);
 
         private void Awake() => EnsureInitialized();
-        private void OnEnable() { EnsureInitialized(); ReconcileDefenseScheduler(); }
-        private void OnDisable() => DefenseScheduler.Unregister(this);
+        private void OnEnable()
+        {
+            EnsureInitialized();
+            attachmentsBound = Application.isPlaying;
+            if (attachmentsBound)
+            {
+                TryGetComponent(out attachedRedirector);
+                TryGetComponent(out attachedModifiers);
+            }
+            ReconcileDefenseScheduler();
+        }
+        private void OnDisable()
+        {
+            attachmentsBound = false;
+            DefenseScheduler.Unregister(this);
+        }
         private void OnValidate()
         {
             if (!CombatMath.Positive(maximumHealth)) maximumHealth = 100f;
@@ -100,7 +127,8 @@ namespace EasyCombat
 
         public float GetResistance(DamageTypeDefinition type)
         {
-            var baseReduction = Resistances != null ? Resistances.GetReduction(type) : 0f;
+            var profile = Resistances;
+            var baseReduction = profile != null ? profile.GetReduction(type) : 0f;
             var statusReduction = statuses != null ? statuses.GetResistanceModifier(type) : 0f;
             return Mathf.Clamp(baseReduction + statusReduction, -1f, 1f);
         }
@@ -120,11 +148,14 @@ namespace EasyCombat
 
         public DamageResult ApplyDamage(DamageInfo damage)
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.ResolveDamage.Auto();
+#endif
             // Do not recursively publish rejections to a journal callback which caused the recursion.
             if (applyingDamage) return DamageResult.Rejected(damage, DamageRejection.Reentrant);
             applyingDamage = true;
             CombatReactionQueue.Enter();
-            try { return ApplyDamageCore(damage); }
+            try { return ApplyDamageCore(ref damage); }
             finally
             {
                 try { pendingDefenseCosts.NotifyAndRelease(); }
@@ -136,7 +167,7 @@ namespace EasyCombat
                 }
             }
         }
-        private DamageResult ApplyDamageCore(DamageInfo damage)
+        private DamageResult ApplyDamageCore(ref DamageInfo damage)
         {
             EnsureInitialized();
             if (!damage.IsValid)
@@ -149,7 +180,8 @@ namespace EasyCombat
             var lifeRules = LifeRules;
             if(lifeRules!=null && !lifeRules.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
             var targetLife=identity;
-            TryGetComponent<DamageRedirector>(out var redirector);
+            var redirector = attachedRedirector;
+            if (!attachmentsBound) TryGetComponent(out redirector);
             if(redirector!=null && redirector.isActiveAndEnabled && !redirector.IsValid) return Reject(damage,DamageRejection.InvalidDefense);
             if ((rules != null && !rules.IsValid) || (DefenseProfile != null && !DefenseProfile.IsValid))
                 return Reject(damage, DamageRejection.InvalidDefense);
@@ -161,7 +193,8 @@ namespace EasyCombat
                 var denied = rules.Check(this, damage);
                 if (denied != DamageRejection.None) return Reject(damage, denied);
             }
-            TryGetComponent<CombatDamageModifiers>(out var damageModifiers);
+            var damageModifiers = attachedModifiers;
+            if (!attachmentsBound) TryGetComponent(out damageModifiers);
             if (damageModifiers != null && damageModifiers.isActiveAndEnabled && damageModifiers.Incoming != null)
             {
                 damage = damage.Adjust(damageModifiers.Incoming);
@@ -177,7 +210,8 @@ namespace EasyCombat
             // Resolve every channel before changing HP: invalid packets cannot apply partial damage.
             var incoming = damage.Parts;
             var shieldParts = new DamageAmounts(); var armorParts = new DamageAmounts();
-            var defenses = new DefenseBreakdown(); var context = new DefenseContext(this, damage);
+            var defenses = new DefenseBreakdown();
+            var context = defense != null ? new DefenseContext(this, in damage) : default;
             defense?.Begin();
             if (defense != null && !defense.Process(DefenseStage.BeforeResistance, context, ref incoming, ref shieldParts, ref armorParts, ref defenses))
                 return Reject(damage, DamageRejection.InvalidDefense);
@@ -432,8 +466,9 @@ namespace EasyCombat
             EnsureInitialized(); var restored = defense != null ? defense.RestoreShield(index, amount) : 0;
             if (restored > 0) { ReconcileDefenseScheduler(); defenseChangedSignal.Publish(this); } return restored;
         }
-        internal bool NeedsDefenseTick => isActiveAndEnabled && IsAlive
-            && (manualInvulnerability > 0 || hitInvulnerability > 0 || defense != null && defense.NeedsAdvance);
+        internal bool NeedsDefenseTick => (manualInvulnerability > 0 || hitInvulnerability > 0 || defense != null)
+            && isActiveAndEnabled && IsAlive
+            && (manualInvulnerability > 0 || hitInvulnerability > 0 || defense.NeedsAdvance);
         private void ReconcileDefenseScheduler()
         { if (NeedsDefenseTick) DefenseScheduler.Register(this); else DefenseScheduler.Unregister(this); }
         public void AdvanceDefense(float deltaTime)

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 — 2026-11-10
+
+- Mixed projectile batches can probe a contiguous run of straight 3D shots after older guided shots have resolved. Launch order, callback-driven movement and target recycling still use live contacts.
+- Hit resolution reuses channel totals, resolves common health-based formula terms directly and tracks optional target components during play. Status resistance lookups rebuild independently of movement and control modifiers.
+- Skip side-effect-free status captures when stacking rules reject a repeat. Randomized formulas, custom capture hooks and applications queued during a tick keep their original execution order.
+- Remove expired overlap-field registrations in one stable compaction pass. Winner selection and expiry callbacks keep their previous order.
+- Reuse query buffers during 3D splash, field and guided target selection, and 2D sweeps and blasts. Nested hits lease independent buffers. Idle explosive projectiles no longer retain their own area-query buffers.
+- Avoid repeated target-life checks, status-stack searches and large hit-record copies on common delivery and tick paths. Control-only statuses skip periodic-effect capture. Existing attack and status assets require no migration.
+
 ## 0.4.0 — 2026-11-10
 
 - Resolve arriving projectiles before issuing speculative 3D sweeps for the rest of a volley. Recent contacts guide the batch boundary; hit order and live collision checks stay intact.

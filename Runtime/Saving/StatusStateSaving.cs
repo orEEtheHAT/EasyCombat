@@ -71,7 +71,7 @@ namespace EasyCombat
             return ()=>
             {
                 BindHealth(); foreach(var entry in entries) ReleaseStacks(entry); entries.Clear();
-                clock=0; independentRecordCount=records; nextStackId=largestId; clearRequested=false; modifiersDirty=true;
+                clock=0; independentRecordCount=records; nextStackId=largestId; clearRequested=false; InvalidateModifiers();
                 entries.AddRange(next); ReconcileScheduler();
             };
         }

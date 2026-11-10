@@ -41,7 +41,7 @@ namespace EasyCombat
             if(removedGroup) { entries[index]=entries[entries.Count-1]; entries.RemoveAt(entries.Count-1); }
             try
             {
-                accepted=ApplyCaptured(recipe.Apply,source,origin,data);
+                accepted=ApplyCaptured(recipe.Apply,source,origin,data,Find(recipe.Apply),out _);
             }
             finally
             {
@@ -64,7 +64,7 @@ namespace EasyCombat
                 if(removed!=null) { ArrayPool<StackState>.Shared.Return(removed,true); ArrayPool<int>.Shared.Return(positions,true); }
             }
             if(!accepted) return false;
-            modifiersDirty=true; ReconcileScheduler();
+            InvalidateModifiers(); ReconcileScheduler();
             var resultAfter=GetStacks(recipe.Apply);
             var kind=resultBefore==0 ? StatusChangeKind.Applied : resultAfter>resultBefore ? StatusChangeKind.StackAdded
                 : recipe.Apply.Stacking==StatusStacking.Independent ? StatusChangeKind.StackReplaced : StatusChangeKind.Refreshed;

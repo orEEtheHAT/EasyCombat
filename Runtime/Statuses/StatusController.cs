@@ -94,6 +94,8 @@ namespace EasyCombat
         private int independentRecordCount;
         private long nextStackId;
         private bool advancing, clearRequested, modifiersDirty = true, bound;
+        private bool resistancesDirty = true;
+        private void InvalidateModifiers() => resistancesDirty = modifiersDirty = true;
         internal int SchedulerIndex = -1;
         internal bool NeedsTick => this != null && isActiveAndEnabled && entries.Count > 0;
         public int Count => entries.Count;
@@ -176,7 +178,7 @@ namespace EasyCombat
             }
             throw new ArgumentOutOfRangeException(nameof(stackIndex));
         }
-        private int ActiveStacks(Entry entry)
+        private int ActiveStacks(in Entry entry)
         {
             if (entry.IndependentStacks == null) return entry.Stacks;
             var count = 0;
@@ -186,7 +188,11 @@ namespace EasyCombat
         private int Find(StatusDefinition definition)
         {
             for (var i = 0; i < entries.Count; i++)
-                if (entries[i].Definition == definition) return i;
+                if (ReferenceEquals(entries[i].Definition, definition)) return i;
+            // Unity also treats a destroyed definition as null until its entry is drained.
+            if (definition == null)
+                for (int i = 0; i < entries.Count; i++)
+                    if (entries[i].Definition == definition) return i;
             return -1;
         }
 
@@ -199,12 +205,15 @@ namespace EasyCombat
         public bool ApplyFromHit(StatusDefinition definition,in DamageResult hit,GameObject source,DamageOrigin origin)
             => CaptureAndApply(definition,source,origin,hit,true);
 
-        private bool CaptureAndApply(StatusDefinition definition, GameObject source, DamageOrigin origin, DamageResult hit, bool hasHit)
+        private bool CaptureAndApply(StatusDefinition definition, GameObject source, DamageOrigin origin, in DamageResult hit, bool hasHit)
         {
-            if (!TryCaptureData(definition,source,ref origin,hit,hasHit,out var data)) return false;
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.ApplyStatus.Auto();
+#endif
+            if (!TryCaptureData(definition,source,ref origin,hit,hasHit,out var data, skipIgnored: true)) return false;
             return ApplyPrepared(definition,source,origin,data);
         }
-        private bool TryCaptureData(StatusDefinition definition, GameObject source, ref DamageOrigin origin, DamageResult hit, bool hasHit, out ApplicationData data)
+        private bool TryCaptureData(StatusDefinition definition, GameObject source, ref DamageOrigin origin, in DamageResult hit, bool hasHit, out ApplicationData data, bool skipIgnored = false)
         {
             data = null;
             if (definition == null || !definition.IsValid || !isActiveAndEnabled || !Health.IsAlive || Health.IsImmuneToStatus(definition)) return false;
@@ -215,10 +224,12 @@ namespace EasyCombat
             if (chance <= 0 || !CombatMath.Positive(duration) || chance < 1 && CombatRandom.Value >= chance) return false;
             if (origin.CastId == 0) origin = DamageOrigin.Capture(source);
             origin = origin.WithStatus(definition);
+            if (skipIgnored && !advancing && CanSkipIgnoredCapture(definition)) return false;
             data = applicationPool.Count > 0 ? applicationPool.Pop() : new ApplicationData();
             data.Duration = duration; data.Interval = definition.TickInterval; data.Power = power;
             data.PlannedTicks = PeriodicDamageEffect.PlannedTicks(data.Duration, data.Interval);
             data.HasBudget = false;
+            if (definition.TickEffects == null || definition.TickEffects.Length == 0) return true;
             var context = new StatusCaptureContext(Health, source, definition, hit, hasHit,origin);
             try
             {
@@ -247,39 +258,63 @@ namespace EasyCombat
             return true;
         }
 
+        // Capture hooks and random formula rolls are observable, even on a rejected application.
+        // Only discard captures known to have neither. Queued operations are decided when drained.
+        private bool CanSkipIgnoredCapture(StatusDefinition definition)
+        {
+            bool ignoreActive = definition.Stacking == StatusStacking.IgnoreWhileActive;
+            if (!ignoreActive && (definition.Stacking != StatusStacking.Independent ||
+                definition.StackOverflow != StatusStackOverflow.IgnoreNew)) return false;
+            if (definition.TickEffects != null)
+                foreach (var effect in definition.TickEffects)
+                    if (effect != null && !(effect is PeriodicHealingEffect) &&
+                        !(effect is PeriodicDamageEffect dot && dot.Formula == null &&
+                          (dot.Terms == null || dot.Terms.Length == 0))) return false;
+            int index = Find(definition);
+            if (index < 0) return false;
+            var entry = entries[index];
+            if (entry.IndependentStacks == null) return ignoreActive;
+            return !ignoreActive && ActiveStacks(in entry) >= definition.MaximumStacks;
+        }
+
         private bool ApplyPrepared(StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data)
         {
-            var before = GetStacks(definition);
+            int index = advancing ? -1 : Find(definition);
+            int before;
             var accepted = false;
-            try { accepted = ApplyCaptured(definition, source, origin, data); }
+            try { accepted = ApplyCaptured(definition, source, origin, data, index, out before); }
             finally { if (!accepted) ReleaseData(data); }
             if (accepted && !advancing)
             {
-                modifiersDirty = true;
+                InvalidateModifiers();
                 StatusScheduler.Register(this);
-                var after = GetStacks(definition);
-                var kind = before == 0 ? StatusChangeKind.Applied : after > before ? StatusChangeKind.StackAdded
-                    : definition.Stacking == StatusStacking.Independent ? StatusChangeKind.StackReplaced : StatusChangeKind.Refreshed;
-                lifecycle.Publish(new StatusChange(this,definition,kind,before,after,origin,definition.Stacking == StatusStacking.Independent ? nextStackId : 0));
+                if (lifecycle.Count != 0)
+                {
+                    var after = ActiveStacks(entries[index >= 0 ? index : entries.Count - 1]);
+                    var kind = before == 0 ? StatusChangeKind.Applied : after > before ? StatusChangeKind.StackAdded
+                        : definition.Stacking == StatusStacking.Independent ? StatusChangeKind.StackReplaced : StatusChangeKind.Refreshed;
+                    lifecycle.Publish(new StatusChange(this,definition,kind,before,after,origin,definition.Stacking == StatusStacking.Independent ? nextStackId : 0));
+                }
                 changedSignal.Publish();
             }
             return accepted;
         }
 
-        private bool ApplyCaptured(StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data)
+        private bool ApplyCaptured(StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data, int index, out int before)
         {
+            before = 0;
             if (definition == null || !isActiveAndEnabled || !Health.IsAlive || Health.IsImmuneToStatus(definition)) return false;
             if (advancing) return Enqueue(definition, source, false, origin, data);
-            var index = Find(definition);
             if (index >= 0)
             {
                 var entry = entries[index];
                 if (entry.IndependentStacks != null)
                 {
-                    if (!ApplyIndependent(entry.IndependentStacks, definition, source, origin, data)) return false;
+                    if (!ApplyIndependent(entry.IndependentStacks, definition, source, origin, data, out before)) return false;
                 }
                 else
                 {
+                    before = entry.Stacks;
                     if (definition.Stacking == StatusStacking.IgnoreWhileActive) return false;
                     data.Interval = (float)entry.Interval;
                     data.PlannedTicks = Math.Max(0, Math.Floor((clock + data.Duration - entry.NextTick + TickEpsilon) / entry.Interval) + 1);
@@ -320,21 +355,31 @@ namespace EasyCombat
             Id = ++nextStackId, Source = source, Origin = origin, Data = data, ExpiresAt = clock + data.Duration,
             Interval = data.Interval, NextTick = data.Effects.Count > 0 ? clock + data.Interval : double.PositiveInfinity
         };
-        private bool ApplyIndependent(List<StackState> stacks, StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data)
+        private bool ApplyIndependent(List<StackState> stacks, StatusDefinition definition, GameObject source, DamageOrigin origin, ApplicationData data, out int live)
         {
-            var live = 0;
+            live = 0;
             var replacement = -1;
+            double earliestExpiry = double.PositiveInfinity;
+            long earliestId = long.MaxValue;
             for (var i = 0; i < stacks.Count; i++)
             {
                 var stack = stacks[i];
                 if (stack.ExpiresAt <= clock) continue;
                 live++;
-                if (replacement < 0 || stack.ExpiresAt < stacks[replacement].ExpiresAt
-                    || (stack.ExpiresAt == stacks[replacement].ExpiresAt && stack.Id < stacks[replacement].Id)) replacement = i;
+                if (definition.StackOverflow == StatusStackOverflow.IgnoreNew)
+                {
+                    if (live >= definition.MaximumStacks) return false;
+                    continue;
+                }
+                if (stack.ExpiresAt < earliestExpiry || (stack.ExpiresAt == earliestExpiry && stack.Id < earliestId))
+                {
+                    replacement = i;
+                    earliestExpiry = stack.ExpiresAt;
+                    earliestId = stack.Id;
+                }
             }
             if (live >= definition.MaximumStacks)
             {
-                if (definition.StackOverflow == StatusStackOverflow.IgnoreNew) return false;
                 var old = stacks[replacement];
                 if (old.NextTick > Math.Min(clock, old.ExpiresAt) + TickEpsilon)
                 {
@@ -386,7 +431,7 @@ namespace EasyCombat
             ReleaseStacks(removed);
             entries[index] = entries[entries.Count - 1];
             entries.RemoveAt(entries.Count - 1);
-            modifiersDirty = true;
+            InvalidateModifiers();
             if (before > 0) lifecycle.Publish(new StatusChange(this,removed.Definition,StatusChangeKind.Removed,before,0,removed.Origin,reason:reason));
         }
         private void ReleaseStacks(Entry entry)
@@ -419,7 +464,7 @@ namespace EasyCombat
             for (var i = 0; i < pendingCount; i++) ReleaseData(pending[i].Data);
             Array.Clear(pending, 0, pendingCount);
             pendingCount = 0;
-            modifiersDirty = true;
+            InvalidateModifiers();
             ReconcileScheduler();
             try
             {
@@ -442,10 +487,10 @@ namespace EasyCombat
             {
                 if (entry.IndependentStacks == null)
                 {
-                    if (previousClock < entry.ExpiresAt && clock >= entry.ExpiresAt) { modifiersDirty = true; changed = true; }
+                    if (previousClock < entry.ExpiresAt && clock >= entry.ExpiresAt) { InvalidateModifiers(); changed = true; }
                 }
                 else foreach (var stack in entry.IndependentStacks)
-                    if (previousClock < stack.ExpiresAt && clock >= stack.ExpiresAt) { modifiersDirty = true; changed = true; break; }
+                    if (previousClock < stack.ExpiresAt && clock >= stack.ExpiresAt) { InvalidateModifiers(); changed = true; break; }
             }
             advancing = true;
             try
@@ -497,7 +542,7 @@ namespace EasyCombat
             ReconcileScheduler();
             if (changed) changedSignal.Publish();
         }
-        private bool AdvanceIndependent(Entry entry)
+        private bool AdvanceIndependent(in Entry entry)
         {
             var stacks = entry.IndependentStacks;
             var budget = Mathf.Clamp(maximumCatchUpTicksPerStatus, 1, 32);
@@ -528,7 +573,7 @@ namespace EasyCombat
                 independentRecordCount--; removed = true;
                 lifecycle.Publish(new StatusChange(this,entry.Definition,StatusChangeKind.Removed,1,0,stack.Origin,stack.Id,StatusRemovalReason.Expired));
             }
-            if (removed) modifiersDirty = true;
+            if (removed) InvalidateModifiers();
             return removed;
         }
         private void ExecuteEffects(ApplicationData data, in StatusTickContext context)
@@ -543,7 +588,7 @@ namespace EasyCombat
             }
             lifecycle.Publish(new StatusChange(this,context.Definition,StatusChangeKind.Tick,context.Stacks,context.Stacks,context.Origin,context.StackId));
         }
-        private StatusTickContext WithCapture(StatusTickContext context, ApplicationData data, CapturedEffect effect) =>
+        private StatusTickContext WithCapture(in StatusTickContext context, ApplicationData data, in CapturedEffect effect) =>
             new StatusTickContext(this, Health, context.Source, context.Definition, context.Stacks, context.Origin, context.StackId,
                 effect.Value, true, data.Duration, data.Interval, data.PlannedTicks, effect.Formula,effect.OutgoingMultiplier,effect.HasOutgoingType,effect.OutgoingType,data.Power);
 
@@ -587,21 +632,43 @@ namespace EasyCombat
         public float GetResistanceModifier(DamageTypeDefinition type)
         {
             if (type == null) return 0f;
-            RebuildModifiersIfNeeded();
+            if (resistancesDirty) RebuildResistances();
             return resistanceModifiers.TryGetValue(type, out var value) ? value : 0f;
+        }
+        private void RebuildResistances()
+        {
+            resistancesDirty = false;
+            resistanceModifiers.Clear();
+            foreach (var entry in entries)
+            {
+                var definition = entry.Definition;
+                var resistances = definition?.ResistanceModifiers;
+                if (resistances == null || resistances.Length == 0 || definition == null ||
+                    (entry.IndependentStacks == null && clock >= entry.ExpiresAt)) continue;
+                int stacks = ActiveStacks(in entry);
+                if (stacks == 0) continue;
+                foreach (var modifier in resistances)
+                {
+                    if (modifier.Type == null || !CombatMath.Finite(modifier.Reduction)) continue;
+                    resistanceModifiers.TryGetValue(modifier.Type, out float previous);
+                    resistanceModifiers[modifier.Type] = previous + Mathf.Clamp(modifier.Reduction, -1f, 1f) * stacks;
+                }
+            }
         }
         private void RebuildModifiersIfNeeded()
         {
             if (!modifiersDirty) return;
             modifiersDirty = false;
             statMultipliers.Clear();
-            resistanceModifiers.Clear();
             restrictions = CombatRestriction.None;
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 if (entry.Definition == null || (entry.IndependentStacks == null && clock >= entry.ExpiresAt)) continue;
-                var activeStacks = ActiveStacks(entry);
+                var definition = entry.Definition;
+                if (definition.Restrictions == CombatRestriction.None &&
+                    (definition.StatModifiers == null || definition.StatModifiers.Length == 0)) continue;
+                var activeStacks = ActiveStacks(in entry);
                 if (activeStacks == 0) continue;
                 restrictions |= entry.Definition.Restrictions;
                 var stats = entry.Definition.StatModifiers;
@@ -611,17 +678,9 @@ namespace EasyCombat
                         var modifier = stats[j];
                         if (modifier.Stat == null || !CombatMath.Finite(modifier.MultiplierPerStack) || modifier.MultiplierPerStack < 0f) continue;
                         var previous = statMultipliers.TryGetValue(modifier.Stat, out var existing) ? existing : 1f;
-                        var next = previous * Mathf.Pow(modifier.MultiplierPerStack, activeStacks);
+                        var multiplier = activeStacks == 1 ? modifier.MultiplierPerStack : Mathf.Pow(modifier.MultiplierPerStack, activeStacks);
+                        var next = previous * multiplier;
                         statMultipliers[modifier.Stat] = CombatMath.Finite(next) ? Mathf.Min(next, 1000f) : 1000f;
-                    }
-                var resistances = entry.Definition.ResistanceModifiers;
-                if (resistances != null)
-                    for (var j = 0; j < resistances.Length; j++)
-                    {
-                        var modifier = resistances[j];
-                        if (modifier.Type == null || !CombatMath.Finite(modifier.Reduction)) continue;
-                        resistanceModifiers.TryGetValue(modifier.Type, out var previous);
-                        resistanceModifiers[modifier.Type] = previous + Mathf.Clamp(modifier.Reduction, -1f, 1f) * activeStacks;
                     }
             }
         }

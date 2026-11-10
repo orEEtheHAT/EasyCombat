@@ -10,7 +10,6 @@ namespace EasyCombat
         [SerializeField] private Transform ownerRoot;
         [SerializeField] private ProjectilePool2D pool;
         private readonly AttackTrace2D trace=new AttackTrace2D();
-        private readonly AreaDamageQuery2D area=new AreaDamageQuery2D();
         private readonly CombatSignal<DamageImpact2D> impacts=new CombatSignal<DamageImpact2D>();
         private readonly CombatSignal<ShotInfo> shots=new CombatSignal<ShotInfo>();
         private Action<DamageImpact2D> impactCallback;
@@ -34,7 +33,7 @@ namespace EasyCombat
             try
             {
                 var definition=attack; nextShot=CombatClock.Now+definition.Cooldown/rate; impactCallback??=impacts.Publish; var end=origin+direction*definition.Range;
-                if(definition.Delivery==DamageDelivery.Area) { end=origin; area.Apply(origin,direction,request,new AreaSettings(definition.Area),source,impactCallback); }
+                if(definition.Delivery==DamageDelivery.Area) { end=origin; AreaDamageQuery2D.ApplyTransient(origin,direction,request,new AreaSettings(definition.Area),source,impactCallback); }
                 else if(definition.Delivery==DamageDelivery.Projectile)
                 { if(pool.Spawn(origin,direction,request,source,definition,impactCallback)==null) { nextShot=double.NegativeInfinity; return false; } }
                 else { trace.Begin(definition,request,source,direction); trace.Advance(origin,definition.Range,impactCallback,out end); trace.Complete(end,impactCallback); }

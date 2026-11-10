@@ -23,14 +23,13 @@ namespace EasyCombat
         }
         internal static void Register(StatusController controller)
         {
-            if (!Application.isPlaying || quitting || !controller.NeedsTick) return;
+            if (controller.SchedulerIndex >= 0 || !Application.isPlaying || quitting || !controller.NeedsTick) return;
             if (instance == null)
             {
                 var root = new GameObject("Combat Status Scheduler");
                 instance = root.AddComponent<StatusScheduler>();
                 DontDestroyOnLoad(root);
             }
-            if (controller.SchedulerIndex >= 0) return;
             controller.SchedulerIndex = active.Count;
             active.Add(controller);
         }
@@ -50,6 +49,9 @@ namespace EasyCombat
         }
         private void Update()
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.TickStatuses.Auto();
+#endif
             if (Time.deltaTime <= 0f) return;
             updating = true;
             try

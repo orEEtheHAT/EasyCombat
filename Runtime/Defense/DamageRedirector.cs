@@ -7,6 +7,14 @@ namespace EasyCombat
     {
         public DamageRedirectionDefinition Definition;
         public Health Guardian;
+        private void OnEnable()
+        {
+            if (TryGetComponent<Health>(out var target)) target.Attach(this);
+        }
+        private void OnDestroy()
+        {
+            if (TryGetComponent<Health>(out var target)) target.Detach(this);
+        }
         public bool IsValid=>Definition==null || Definition.IsValid;
         internal float Redirect(in DamageInfo original,DamageAmounts input,out DamageAmounts remaining,out DamageAmounts redirected)
         {

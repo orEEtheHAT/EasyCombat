@@ -102,6 +102,48 @@ namespace EasyCombat.Tests
 
         [TestCase(ProjectileExecutionMode.SingleThread)]
         [TestCase(ProjectileExecutionMode.Parallel)]
+        public void GuidedHitMovesVictimBeforeStraightRunAndFirstStraightHitInvalidatesTail(ProjectileExecutionMode mode)
+        {
+            var lane = origin + Vector3.right * 12;
+            Launch(origin + Vector3.right * 40);
+            var motion = ScriptableObject.CreateInstance<ProjectileMotionDefinition>();
+            cleanup.Add(motion);
+            motion.MaximumStep = .2f;
+            attack.ProjectileMotion = motion;
+            Launch(origin, _ => { victim.transform.position = lane + Vector3.forward * 2; Physics.SyncTransforms(); });
+            attack.ProjectileMotion = null;
+            for (int i = 0; i < 40; i++) Launch(lane + Vector3.right * 6);
+            int hits = 0;
+            var lastLane = lane + Vector3.right * 20;
+            Launch(lane, _ =>
+            {
+                hits++;
+                victim.transform.position = lastLane + Vector3.forward * 2;
+                Physics.SyncTransforms();
+            });
+            Launch(lastLane, _ => hits++);
+            Object.FindFirstObjectByType<ProjectileBatchScheduler>().Advance(.25f, mode);
+            Assert.AreEqual(2, hits);
+            Assert.AreEqual(91, victim.Current);
+        }
+
+        [Test] public void TargetCanGainAndDisableIncomingModifiersAfterInitialization()
+        {
+            victim.ApplyDamage(new DamageInfo(1));
+            var profile = ScriptableObject.CreateInstance<DamageModifierProfile>();
+            cleanup.Add(profile);
+            profile.Rules = new[] { new DamageModifierRule(.5f) };
+            var modifiers = victim.gameObject.AddComponent<CombatDamageModifiers>();
+            modifiers.Incoming = profile;
+            Assert.AreEqual(5, victim.ApplyDamage(new DamageInfo(10)).AppliedAmount);
+            modifiers.enabled = false;
+            Assert.AreEqual(10, victim.ApplyDamage(new DamageInfo(10)).AppliedAmount);
+            modifiers.enabled = true;
+            Assert.AreEqual(5, victim.ApplyDamage(new DamageInfo(10)).AppliedAmount);
+        }
+
+        [TestCase(ProjectileExecutionMode.SingleThread)]
+        [TestCase(ProjectileExecutionMode.Parallel)]
         public void SplashAppliesIndependentStacksAndTicksOncePerReceiver(ProjectileExecutionMode mode)
         {
             var burn = ScriptableObject.CreateInstance<StatusDefinition>(); cleanup.Add(burn);

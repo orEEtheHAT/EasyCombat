@@ -92,11 +92,12 @@ namespace EasyCombat
         }
         // IDs keep increasing with disabled domain reload so cached identities cannot collide.
         internal static long NextId() => ++sequence;
-        internal static void Publish(CombatActorIdentity target, DamageResult result, Health targetHealth = null)
+        internal static void Publish(CombatActorIdentity target, in DamageResult result, Health targetHealth = null)
         {
             if(CombatSaveSystem.IsRestoring) return;
             var snapshot = CombatExecutionScope.Current?.IsolateGlobalEvents==true ? Array.Empty<Action<CombatRecord>>() : listeners;
-            var source=result.Damage.Source!=null ? result.Damage.Source.GetComponentInParent<Health>() : null;
+            // Health lives have positive IDs. A shot captured without a Health cannot notify a later life.
+            var source=result.Damage.Origin.Actor.Id > 0 && result.Damage.Source!=null ? result.Damage.Source.GetComponentInParent<Health>() : null;
             if(source!=null && source.Identity.Id!=result.Damage.Origin.Actor.Id) source=null;
             if (snapshot.Length == 0 && (targetHealth==null || targetHealth.ResolvedSubscriberCount==0)
                 && (source==null || source.ResolvedSubscriberCount==0)) return;

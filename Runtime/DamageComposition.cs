@@ -29,8 +29,9 @@ namespace EasyCombat
     {
         public const int Capacity = 8;
         private DamagePart a, b, c, d, e, f, g, h;
-        public int Count { get; private set; }
-        public DamagePart this[int index] => index >= 0 && index < Count ? index switch
+        private float total;
+        public int Count { readonly get; private set; }
+        public readonly DamagePart this[int index] => index >= 0 && index < Count ? index switch
         { 0 => a, 1 => b, 2 => c, 3 => d, 4 => e, 5 => f, 6 => g, _ => h } : throw new ArgumentOutOfRangeException(nameof(index));
         public void Add(DamageTypeDefinition type, float amount)
         {
@@ -42,17 +43,21 @@ namespace EasyCombat
                 default: throw new InvalidOperationException("A hit supports at most eight damage channels.");
             }
             Count++;
+            total += amount;
         }
-        public float Total { get { var total = 0f; for (var i = 0; i < Count; i++) total += this[i].Amount; return total; } }
-        public bool IsValid
+        public readonly float Total => total;
+        public readonly bool IsValid
         {
             get
             {
-                for (var i = 0; i < Count; i++) if (!CombatMath.Finite(this[i].Amount) || this[i].Amount < 0) return false;
-                return CombatMath.Finite(Total);
+                // A non-finite part makes the sum non-finite as well.
+                if (!CombatMath.Finite(total)) return false;
+                if (Count == 1) return total >= 0;
+                for (var i = 0; i < Count; i++) if (this[i].Amount < 0) return false;
+                return true;
             }
         }
-        public DamageAmounts Scale(float multiplier)
+        public readonly DamageAmounts Scale(float multiplier)
         {
             var result = new DamageAmounts();
             for (var i = 0; i < Count; i++) result.Add(this[i].Type, this[i].Amount * multiplier);

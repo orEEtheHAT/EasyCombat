@@ -21,7 +21,7 @@ namespace EasyCombat
         public void Publish(T value)=>Publish(value,null,0);
         public void Publish(T value,Health actor,long life)
         {
-            if (depth >= 32 || CombatSaveSystem.IsRestoring) return;
+            if (listeners.Length == 0 || depth >= 32 || CombatSaveSystem.IsRestoring) return;
             depth++;
             try
             {
@@ -51,7 +51,7 @@ namespace EasyCombat
         }
         public void Publish()
         {
-            if (depth >= 32 || CombatSaveSystem.IsRestoring) return; depth++;
+            if (listeners.Length == 0 || depth >= 32 || CombatSaveSystem.IsRestoring) return; depth++;
             try
             {
                 var snapshot = listeners;

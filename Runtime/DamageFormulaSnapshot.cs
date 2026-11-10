@@ -19,14 +19,13 @@ namespace EasyCombat
     {
         private PreparedDamageTerm a, b, c, d, e, f, g, h;
         private GameObject source;
-        private Health sourceHealth;
         private long sourceLife;
         private float scale;
-        public int Count { get; private set; }
-        public bool IsCritical { get; private set; }
+        public int Count { readonly get; private set; }
+        public bool IsCritical { readonly get; private set; }
         internal DamageFormulaSnapshot(GameObject source, bool critical) : this()
-        { this.source = source; sourceHealth=source!=null ? source.GetComponentInParent<Health>() : null; sourceLife=CombatSources.IdentityId(source); IsCritical = critical; scale = 1; }
-        private PreparedDamageTerm Get(int index) => index switch { 0 => a, 1 => b, 2 => c, 3 => d, 4 => e, 5 => f, 6 => g, 7 => h, _ => throw new ArgumentOutOfRangeException(nameof(index)) };
+        { this.source = source; sourceLife=CombatSources.IdentityId(source); IsCritical = critical; scale = 1; }
+        private readonly PreparedDamageTerm Get(int index) => index switch { 0 => a, 1 => b, 2 => c, 3 => d, 4 => e, 5 => f, 6 => g, 7 => h, _ => throw new ArgumentOutOfRangeException(nameof(index)) };
         internal void Add(PreparedDamageTerm term)
         {
             switch (Count)
@@ -35,7 +34,7 @@ namespace EasyCombat
               default: throw new InvalidOperationException("At most eight formula terms."); }
             Count++;
         }
-        public bool IsValid
+        public readonly bool IsValid
         {
             get
             {
@@ -52,7 +51,8 @@ namespace EasyCombat
         internal DamageFormulaSnapshot Adjust(DamageModifierProfile profile, bool periodic, CombatTagSet tags)
         {
             if (profile == null) return this;
-            var copy = new DamageFormulaSnapshot(source,IsCritical); copy.scale = scale; copy.sourceHealth=sourceHealth; copy.sourceLife=sourceLife;
+            var copy = this;
+            copy.Count = 0;
             for (var i = 0; i < Count; i++)
             {
                 var term = Get(i);
@@ -61,7 +61,7 @@ namespace EasyCombat
             }
             return copy;
         }
-        public bool TryResolve(float currentHealth, float maximumHealth, out DamageAmounts amounts)
+        public readonly bool TryResolve(float currentHealth, float maximumHealth, out DamageAmounts amounts)
         {
             amounts = default;
             if (!IsValid || !CombatMath.Finite(currentHealth) || !CombatMath.Finite(maximumHealth)
@@ -70,9 +70,19 @@ namespace EasyCombat
             {
                 var term = Get(i);
                 // A missing live source contributes zero. Captured values are independent of source lifetime.
-                var input = new StatusDamageTerm(term.Basis, 1) { Stat = term.Stat };
-                var liveSource=term.Basis==StatusDamageBasis.SourceStat ? CombatSources.ForLife(source,sourceLife) : null;
-                if (!DamageFormulaMath.TryValue(input, currentHealth, maximumHealth, true, liveSource, default, false, out var basis)) basis = 0;
+                float basis;
+                switch (term.Basis)
+                {
+                    case StatusDamageBasis.Fixed: basis = 1; break;
+                    case StatusDamageBasis.TargetCurrentHealth: basis = currentHealth; break;
+                    case StatusDamageBasis.TargetMaximumHealth: basis = maximumHealth; break;
+                    case StatusDamageBasis.TargetMissingHealth: basis = maximumHealth - currentHealth; break;
+                    default:
+                        var input = new StatusDamageTerm(term.Basis, 1) { Stat = term.Stat };
+                        var liveSource = term.Basis == StatusDamageBasis.SourceStat ? CombatSources.ForLife(source, sourceLife) : null;
+                        if (!DamageFormulaMath.TryValue(input, currentHealth, maximumHealth, true, liveSource, default, false, out basis)) basis = 0;
+                        break;
+                }
                 var value = (double)basis * term.Value * term.Multiplier * scale;
                 if (term.Limit > 0) value = Math.Min(value, term.Limit);
                 if (double.IsNaN(value) || double.IsInfinity(value) || value < 0 || value > float.MaxValue) return false;

@@ -31,6 +31,22 @@ namespace EasyCombat.Tests
         [UnityTearDown] public IEnumerator Teardown()
         { for (var i = cleanup.Count - 1; i >= 0; i--) if (cleanup[i] != null) Object.Destroy(cleanup[i]); cleanup.Clear(); yield return null; }
         private DamageInfo Shot() => attack.RollDamage(source, center, Vector3.forward, .5f, 1);
+        [Test] public void NestedExplosionKeepsBothVictimLists()
+        {
+            var first = Target(Vector3.right * 2);
+            var second = Target(Vector3.left * 2);
+            var distant = Target(Vector3.forward * 25);
+            Physics.SyncTransforms();
+            var settings = new AreaSettings(area);
+            int callbacks = 0;
+            AreaDamageQuery.ApplyTransient(center, Vector3.forward, Shot(), settings, source.transform, _ =>
+            {
+                if (++callbacks == 1)
+                    AreaDamageQuery.ApplyTransient(distant.transform.position, Vector3.forward, Shot(), settings, source.transform, null);
+            });
+            Assert.AreEqual(2, callbacks);
+            Assert.AreEqual(80, first.Current); Assert.AreEqual(80, second.Current); Assert.AreEqual(80, distant.Current);
+        }
         [UnityTest] public IEnumerator SphereDeduplicatesHurtboxesAndIgnoresWeakspotMultiplierByDefault()
         {
             var target = Target(Vector3.forward * 2);

@@ -10,7 +10,6 @@ namespace EasyCombat
         [SerializeField] private AreaPulseDefinition definition;
         [SerializeField] private GameObject source;
         [SerializeField] private bool playOnEnable;
-        private readonly AreaDamageQuery query = new AreaDamageQuery();
         private DamageInfo payload;
         private DamageOrigin origin;
         private AreaSettings area;
@@ -75,21 +74,22 @@ namespace EasyCombat
                 while (IsRunning && nextTick <= limit + 1e-7 && ticks++ < 8)
                 {
                     nextTick += interval;
-                    query.Apply(transform.position, transform.forward, payload, area, owner, callback);
+#if EASYCOMBAT_CPU_CAPTURE
+                    using var sample = CombatCpuMarkers.FieldTick.Auto();
+#endif
+                    AreaDamageQuery.ApplyTransient(transform.position, transform.forward, payload, area, owner, callback);
                 }
                 if (elapsed >= duration && nextTick > duration + 1e-7) Stop();
             }
             catch { Stop(); throw; }
             finally { advancing = false; if (!IsRunning) Finish(); }
         }
-        internal int SelectOverlapCandidates() => query.Select(transform.position, transform.forward, payload, area, owner);
-        internal AreaCandidate GetOverlapCandidate(int index) => query.GetCandidate(index);
+        internal int SelectOverlapCandidates(AreaDamageQuery query) => query.Select(transform.position, transform.forward, payload, area, owner);
         internal bool AllowsOverlapCandidate(in AreaCandidate candidate)
         {
             var health=CombatTargetGroups.Rules(candidate.Receiver);
             return health==null || health.HitRules==null || health.HitRules.IsValid && health.HitRules.CheckRelationship(health,payload)==DamageRejection.None;
         }
-        internal void ClearOverlapSelection() => query.ClearSelection();
         internal void SetOverlapAge(double age) => elapsed = age;
         internal void ApplyOverlapCandidate(in AreaCandidate candidate, long lease)
         {

@@ -24,16 +24,15 @@ namespace EasyCombat
         public readonly int ColliderId;
         public bool WasTarget=>!ReferenceEquals(Receiver,null);
         public bool IsCurrent=>Collider!=null && Collider.enabled && Collider.gameObject.activeInHierarchy && (!WasTarget || Receiver!=null
-            && Receiver.isActiveAndEnabled && (Zone==null || Zone.Receiver==Receiver) && Key.Equals(new CombatHitKey(Receiver))
-            && (Life==0 || CombatTargetGroups.Life(Receiver)==Life));
+            && Receiver.isActiveAndEnabled && (Zone==null || Zone.Receiver==Receiver) && Key.MatchesLife(Receiver,Life));
         public DamageContact2D(Collider2D collider,float distance,Vector2 point,Vector2 normal)
         {
             Collider=collider; Distance=distance; Point=point; Normal=normal; ColliderId=collider.GetInstanceID();
             Zone=collider.GetComponentInParent<Hurtbox>(); Receiver=Zone!=null ? Zone.Receiver : collider.GetComponentInParent<IDamageable>() as MonoBehaviour;
             if(Receiver is Hurtbox || !(Receiver is IDamageable)) Receiver=null;
-            Key=Receiver!=null ? new CombatHitKey(Receiver) : default; Life=Receiver!=null ? CombatTargetGroups.Life(Receiver) : 0;
+            Key=Receiver!=null ? new CombatHitKey(Receiver) : default; Life=Receiver!=null && !(Receiver is Health) ? CombatTargetGroups.Life(Receiver) : 0;
         }
-        public DamageImpact2D Apply(DamageInfo damage,bool useZone=true)
+        public DamageImpact2D Apply(in DamageInfo damage,bool useZone=true)
         {
             var result=useZone && Zone!=null ? Zone.ApplyDamage(damage) : Receiver!=null ? ((IDamageable)Receiver).ApplyDamage(damage) : DamageResult.Rejected(damage,DamageRejection.NoReceiver);
             return new DamageImpact2D(Collider,Point,Normal,result);
@@ -58,7 +57,7 @@ namespace EasyCombat
             var filter=new ContactFilter2D(); filter.SetLayerMask(mask);
             filter.useTriggers=triggers==QueryTriggerInteraction.Collide || triggers==QueryTriggerInteraction.UseGlobal && Physics2D.queriesHitTriggers; return filter;
         }
-        internal static bool IsOwner(Collider2D collider,Transform owner)=>owner!=null && (collider.transform==owner || collider.transform.IsChildOf(owner));
+        internal static bool IsOwner(Collider2D collider,Transform owner)=>owner!=null && collider.transform.IsChildOf(owner);
         internal int Collect(Vector2 origin,Vector2 direction,float distance,float radius,LayerMask mask,QueryTriggerInteraction triggers,Transform owner)
         {
             contacts.Clear(); var filter=Filter(mask,triggers); var overlapsCount=0;
@@ -77,9 +76,9 @@ namespace EasyCombat
                     }
                     for(var i=0;i<count;i++)
                     {
-                        var hit=hits[i]; if(hit.collider==null || IsOwner(hit.collider,owner)) continue;
-                        var duplicate=false; for(var j=0;j<overlapsCount;j++) if(overlaps[j]==hit.collider) { duplicate=true; break; }
-                        if(!duplicate) contacts.Add(new DamageContact2D(hit.collider,hit.distance,hit.point,hit.normal));
+                        var hit=hits[i]; var collider=hit.collider; if(collider==null || IsOwner(collider,owner)) continue;
+                        var duplicate=false; for(var j=0;j<overlapsCount;j++) if(overlaps[j]==collider) { duplicate=true; break; }
+                        if(!duplicate) contacts.Add(new DamageContact2D(collider,hit.distance,hit.point,hit.normal));
                     }
                 }
                 if(contacts.Count>1) contacts.Sort(compareContacts); return contacts.Count;
@@ -108,9 +107,20 @@ namespace EasyCombat
         private Collider2D[] overlaps=new Collider2D[32];
         private readonly List<DamageContact2D> contacts=new List<DamageContact2D>(32);
         private readonly Dictionary<CombatHitKey,int> indices=new Dictionary<CombatHitKey,int>(32);
-        private readonly DamageQuery2D visibility=new DamageQuery2D();
+        private DamageQuery2D visibility;
+        private static readonly Stack<AreaDamageQuery2D> available = new Stack<AreaDamageQuery2D>(8);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPool() => available.Clear();
+        internal static int ApplyTransient(Vector2 center, Vector2 forward, in DamageInfo damage, in AreaSettings settings, Transform owner, Action<DamageImpact2D> callback)
+        {
+            var query = available.Count > 0 ? available.Pop() : new AreaDamageQuery2D();
+            try { return query.ApplyCore(center, forward, in damage, in settings, owner, callback); }
+            finally { if (available.Count < 8) available.Push(query); }
+        }
         private bool busy;
         public int Apply(Vector2 center,Vector2 forward,DamageInfo damage,AreaSettings settings,Transform owner=null,Action<DamageImpact2D> onImpact=null)
+            => ApplyCore(center,forward,in damage,in settings,owner,onImpact);
+        private int ApplyCore(Vector2 center,Vector2 forward,in DamageInfo damage,in AreaSettings settings,Transform owner,Action<DamageImpact2D> onImpact)
         {
             if(busy) throw new InvalidOperationException("Do not recursively reuse the same 2D area query.");
             if(!settings.Enabled || !damage.IsValid || !CombatMath.Finite(center) || !CombatMath.Finite(forward) || settings.Shape==AreaShape.Cone && forward.sqrMagnitude<.000001f) return 0;
@@ -124,7 +134,8 @@ namespace EasyCombat
                     var collider=overlaps[i]; if(collider==null) continue;
                     var point=collider.ClosestPoint(center); var delta=point-center; var distance=delta.magnitude;
                     var contact=new DamageContact2D(collider,distance,point,-delta.normalized);
-                    if(!contact.WasTarget || !contact.IsCurrent || contact.Zone!=null && !contact.Zone.isActiveAndEnabled || distance>settings.Radius) continue;
+                    // The collider came from this live overlap. Revalidate the captured life before delivery, after callbacks can run.
+                    if(!contact.WasTarget || !contact.Receiver.isActiveAndEnabled || contact.Zone!=null && !contact.Zone.isActiveAndEnabled || distance>settings.Radius) continue;
                     var health=CombatTargetGroups.Rules(contact.Receiver);
                     if(!settings.AffectOwner && (DamageQuery2D.IsOwner(collider,owner) || health!=null && health.Identity.Id==damage.Origin.Actor.Id)) continue;
                     if(settings.Targets!=AreaTargetFilter.All)
@@ -133,7 +144,7 @@ namespace EasyCombat
                         if(settings.Targets==AreaTargetFilter.Allies ? !ally : ally) continue;
                     }
                     if(settings.Shape==AreaShape.Cone && distance>.0001f && Vector2.Dot(forward,delta/distance)<settings.ConeCosine) continue;
-                    if(settings.RequireLineOfSight && !visibility.Visible(center,point,settings.ObstacleMask,owner,contact.Receiver)) continue;
+                    if(settings.RequireLineOfSight && !(visibility ??= new DamageQuery2D()).Visible(center,point,settings.ObstacleMask,owner,contact.Receiver)) continue;
                     if(indices.TryGetValue(contact.Key,out var existing))
                     { var old=contacts[existing]; if(distance<old.Distance || distance==old.Distance && contact.ColliderId<old.ColliderId) contacts[existing]=contact; }
                     else { indices.Add(contact.Key,contacts.Count); contacts.Add(contact); }
@@ -154,9 +165,10 @@ namespace EasyCombat
     }
     internal sealed class AttackTrace2D
     {
-        private readonly DamageQuery2D query=new DamageQuery2D();
-        private readonly AreaDamageQuery2D explosion=new AreaDamageQuery2D();
-        private readonly HashSet<CombatHitKey> visited=new HashSet<CombatHitKey>();
+        private static readonly Stack<DamageQuery2D> scratch = new Stack<DamageQuery2D>(8);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPool() => scratch.Clear();
+        private HashSet<CombatHitKey> visited;
         private Transform owner;
         private DamageInfo damage;
         private AreaSettings area;
@@ -168,7 +180,7 @@ namespace EasyCombat
         internal Vector2 Direction => direction;
         public bool Active { get; private set; }
         public float Radius { get; private set; }
-        public void Begin(AttackDefinition attack,DamageInfo request,Transform source,Vector2 forward)
+        public void Begin(AttackDefinition attack,in DamageInfo request,Transform source,Vector2 forward)
         {
             Clear(); owner=source; damage=request; area=new AreaSettings(attack.Area); mask=attack.HitMask; triggers=attack.Triggers;
             piercing=attack.ContactBehavior==ContactBehavior.PierceTargets; maximumTargets=attack.MaximumTargets; direction=forward.normalized; Radius=attack.HitRadius; Active=true;
@@ -176,25 +188,26 @@ namespace EasyCombat
         public void Advance(Vector2 origin,float distance,Action<DamageImpact2D> callback,out Vector2 end,Vector2? displacement=null)
         {
             end=origin+(displacement ?? direction*distance); if(!Active) return;
-            var count=query.Collect(origin,direction,distance,Radius,mask,triggers,owner);
+            var query = scratch.Count > 0 ? scratch.Pop() : new DamageQuery2D();
             try
             {
+                var count=query.Collect(origin,direction,distance,Radius,mask,triggers,owner);
                 for(var i=0;i<count && Active;i++)
                 {
-                    var contact=query.Get(i); if(!contact.IsCurrent || contact.WasTarget && !visited.Add(contact.Key)) continue;
+                    var contact=query.Get(i); if(!contact.IsCurrent || piercing && contact.WasTarget && !(visited ??= new HashSet<CombatHitKey>()).Add(contact.Key)) continue;
                     contacts++; var stop=!piercing || !contact.WasTarget || maximumTargets>0 && visited.Count>=maximumTargets;
                     if(stop) { Active=false; end=origin+direction*contact.Distance; }
-                    if(area.Enabled) explosion.Apply(contact.Point+contact.Normal*.001f,direction,damage,area,owner,callback);
+                    if(area.Enabled) AreaDamageQuery2D.ApplyTransient(contact.Point+contact.Normal*.001f,direction,damage,area,owner,callback);
                     else { var impact=contact.Apply(damage.At(contact.Point,direction)); callback?.Invoke(impact); }
                     if(!Active) end=origin+direction*contact.Distance;
                 }
             }
             catch { Active=false; throw; }
-            finally { query.Clear(); }
+            finally { query.Clear(); if (scratch.Count < 8) scratch.Push(query); }
         }
         public void Complete(Vector2 end,Action<DamageImpact2D> callback)
-        { Active=false; if(area.Enabled && contacts==0) explosion.Apply(end,direction,damage,area,owner,callback); }
+        { Active=false; if(area.Enabled && contacts==0) AreaDamageQuery2D.ApplyTransient(end,direction,damage,area,owner,callback); }
         public void Stop()=>Active=false;
-        public void Clear() { Active=false; visited.Clear(); query.Clear(); owner=null; damage=default; area=default; contacts=0; }
+        public void Clear() { Active=false; visited?.Clear(); owner=null; damage=default; area=default; contacts=0; }
     }
 }

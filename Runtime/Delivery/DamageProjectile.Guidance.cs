@@ -7,7 +7,6 @@ namespace EasyCombat
     {
         private sealed class GuidanceState
         {
-            public readonly AreaDamageQuery Search=new AreaDamageQuery();
             public AreaSettings SearchSettings;
             public Health Target,SourceHealth;
             public Transform Source;
@@ -18,7 +17,7 @@ namespace EasyCombat
             public double Age,PendingTime;
             public DamageContact Contact;
             public void Clear()
-            { Target=SourceHealth=null; Source=null; Contact=default; Search.ClearSelection(); PendingTime=Age=0; Returning=Cancelled=HasContact=false; }
+            { Target=SourceHealth=null; Source=null; Contact=default; PendingTime=Age=0; Returning=Cancelled=HasContact=false; }
         }
         private GuidanceState guidance;
         private bool usesGuidance;
@@ -108,13 +107,14 @@ namespace EasyCombat
         private Health FindNext(Vector3 at,bool requireUnvisited)
         {
             var g=guidance; if(!g.SearchSettings.Enabled) return null;
-            var count=g.Search.Select(at,trace.Direction,trace.Payload,g.SearchSettings,g.Source);
+            var search = AreaDamageQuery.Rent();
             try
             {
+                var count=search.Select(at,trace.Direction,trace.Payload,g.SearchSettings,g.Source);
                 Health best=null; var bestDistance=float.PositiveInfinity; var bestId=int.MaxValue;
                 for(var i=0;i<count;i++)
                 {
-                    var candidate=g.Search.GetCandidate(i); var health=CombatTargetGroups.Rules(candidate.Receiver);
+                    var candidate=search.GetCandidate(i); var health=CombatTargetGroups.Rules(candidate.Receiver);
                     if(health==null || !health.IsAlive || !health.isActiveAndEnabled || candidate.Receiver is CombatBodyPart body && body.IsBroken
                         || (requireUnvisited || g.Homing) && trace.HasVisited(candidate.Receiver)) continue;
                     var id=candidate.Collider.GetInstanceID();
@@ -122,7 +122,7 @@ namespace EasyCombat
                 }
                 return best;
             }
-            finally { g.Search.ClearSelection(); }
+            finally { AreaDamageQuery.Return(search); }
         }
     }
 }

@@ -27,7 +27,6 @@ namespace EasyCombat
         [SerializeField] private ProjectilePool projectilePool;
         [SerializeField] private DamageAreaPool areaPool;
         private readonly AttackTrace trace = new AttackTrace();
-        private readonly AreaDamageQuery areaQuery = new AreaDamageQuery();
         private double nextShotTime = double.NegativeInfinity;
         private Transform resolvedOwner;
         private StatusController ownerStatuses;
@@ -73,7 +72,6 @@ namespace EasyCombat
             var radius = delivery == DamageDelivery.Area ? 0 : definition.HitRadius;
             var damage = definition.RollRandom(sourceRoot.gameObject, origin, direction, damageMultiplier);
             if (!damage.IsValid) return false;
-            var area = new AreaSettings(definition.Area);
             if (impactCallback == null) impactCallback = ReportImpact;
             var end = origin + direction * definition.Range;
             // Reserve cooldown before invoking any damage/event callbacks.
@@ -81,7 +79,7 @@ namespace EasyCombat
             if (delivery == DamageDelivery.Area)
             {
                 end = origin;
-                areaQuery.Apply(origin, direction, damage, area, sourceRoot, impactCallback);
+                AreaDamageQuery.ApplyTransient(origin, direction, damage, new AreaSettings(definition.Area), sourceRoot, impactCallback);
             }
             else if (delivery == DamageDelivery.Projectile)
             {

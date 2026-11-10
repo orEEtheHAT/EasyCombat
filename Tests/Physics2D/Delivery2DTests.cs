@@ -49,6 +49,17 @@ namespace EasyCombat.Tests
             attack.Delivery=DamageDelivery.Area; attack.Area=Asset<AreaDefinition>(); attack.Area.Shape=AreaShape.Cone; attack.Area.Radius=4; attack.Area.ConeAngle=60;
             Physics2D.SyncTransforms(); emitter.TryFire(origin,Vector2.right); Assert.That(target.Current,Is.EqualTo(90)); Assert.That(behind.Current,Is.EqualTo(100));
         }
+        [Test] public void NestedAreaFromHitPreservesOuter2DSelection()
+        {
+            var first=Target(Vector2.right); var second=Target(Vector2.left);
+            var far=Target(Vector2.right*20);
+            var child=Actor("Nested emitter",Vector2.up*30).AddComponent<DamageEmitter2D>();
+            attack.Delivery=DamageDelivery.Area; attack.Area=Asset<AreaDefinition>();attack.Area.Radius=3;child.Attack=attack;
+            int count=0;
+            emitter.Impacted+=_=>{if(++count==1)child.TryFire(far.transform.position,Vector2.right);};
+            Physics2D.SyncTransforms(); Assert.IsTrue(emitter.TryFire(origin,Vector2.right));
+            Assert.AreEqual(2,count);Assert.AreEqual(90,first.Current);Assert.AreEqual(90,second.Current);Assert.AreEqual(90,far.Current);
+        }
         [Test] public void AoeLineOfSightUses2DColliders()
         {
             var target=Target(new Vector2(3,0)); var wall=Actor("Wall",new Vector2(1.5f,0)); wall.AddComponent<BoxCollider2D>().size=new Vector2(.2f,3);

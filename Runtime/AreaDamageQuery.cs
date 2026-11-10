@@ -21,7 +21,26 @@ namespace EasyCombat
     public sealed class AreaDamageQuery
     {
         private Collider[] overlaps = new Collider[32];
-        private readonly DamageQuery visibility = new DamageQuery();
+        private DamageQuery visibility;
+        private static readonly Stack<AreaDamageQuery> available = new Stack<AreaDamageQuery>(8);
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPool() => available.Clear();
+
+        internal static AreaDamageQuery Rent() => available.Count == 0 ? new AreaDamageQuery() : available.Pop();
+        internal static void Return(AreaDamageQuery query)
+        {
+            if (query.busy) query.ClearSelection();
+            if (available.Count < 8) available.Push(query);
+        }
+
+        internal static int ApplyTransient(Vector3 center, Vector3 forward, DamageInfo damage,
+            AreaSettings settings, Transform owner, Action<DamageImpact> onImpact)
+        {
+            var query = Rent();
+            try { return query.Apply(center, forward, damage, settings, owner, onImpact); }
+            finally { Return(query); }
+        }
         private readonly Dictionary<MonoBehaviour, int> indices = new Dictionary<MonoBehaviour, int>(32);
         private readonly List<AreaCandidate> candidates = new List<AreaCandidate>(32);
         private bool busy;
@@ -30,6 +49,9 @@ namespace EasyCombat
 
         internal int Select(Vector3 center, Vector3 forward, DamageInfo damage, AreaSettings settings, Transform owner)
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.AreaSelect.Auto();
+#endif
             if (busy) throw new InvalidOperationException("Do not recursively reuse the same area query from its callbacks.");
             if (!settings.Enabled || !damage.IsValid || !CombatMath.Finite(center) || !CombatMath.Finite(forward)
                 || (settings.Shape == AreaShape.Cone && forward.sqrMagnitude < .000001f)) return 0;
@@ -37,7 +59,7 @@ namespace EasyCombat
             var count = 0;
             try
             {
-                forward.Normalize();
+                if (settings.Shape == AreaShape.Cone) forward.Normalize();
                 while (true)
                 {
                     count = CombatPhysics.Scene.OverlapSphere(center, settings.Radius, overlaps, settings.TargetMask, settings.Triggers);
@@ -57,11 +79,11 @@ namespace EasyCombat
                     if (settings.DistanceFalloff && Mathf.Lerp(1, settings.EdgeMultiplier, distance / settings.Radius) <= 0) continue;
                     if (settings.Shape == AreaShape.Cone && distance > .0001f && Vector3.Dot(forward, delta / distance) < settings.ConeCosine) continue;
                     if (settings.RequireLineOfSight && distance > .001f
-                        && visibility.Cast(center, delta / distance, distance, 0, settings.ObstacleMask, QueryTriggerInteraction.Ignore, owner, out var obstruction)
+                        && (visibility ??= new DamageQuery()).Cast(center, delta / distance, distance, 0, settings.ObstacleMask, QueryTriggerInteraction.Ignore, owner, out var obstruction)
                         && (!TryResolve(obstruction.collider, out var blockedReceiver, out _) || blockedReceiver != receiver)) continue;
                     var group=CombatTargetGroups.Key(receiver);
                     var candidate = new AreaCandidate { Collider = collider, Receiver = receiver, Group=group, Zone = zone, Point = point,
-                        Distance = distance, LifeId = CombatTargetGroups.Life(receiver), GroupLifeId=group is Health groupHealth ? groupHealth.Identity.Id : 0 };
+                        Distance = distance, LifeId = CombatTargetGroups.Life(receiver), GroupLifeId=!ReferenceEquals(group,receiver) && group is Health groupHealth ? groupHealth.Identity.Id : 0 };
                     if (indices.TryGetValue(group, out var existing))
                     {
                         var old = candidates[existing];
@@ -104,10 +126,10 @@ namespace EasyCombat
         }
         private static bool IsOwner(Collider collider, MonoBehaviour receiver, Transform owner, CombatActorIdentity source)
         {
-            if (owner != null && (collider.transform == owner || collider.transform.IsChildOf(owner)
-                || receiver.transform == owner || receiver.transform.IsChildOf(owner))) return true;
+            if (owner != null && (collider.transform.IsChildOf(owner) || receiver.transform.IsChildOf(owner))) return true;
+            if (source.Id <= 0) return false;
             var health=CombatTargetGroups.Rules(receiver);
-            return source.Id != 0 && health!=null && health.Identity.Id == source.Id;
+            return health!=null && health.Identity.Id == source.Id;
         }
         private static bool AllowsTeam(MonoBehaviour target, AreaTargetFilter filter, DamageOrigin origin)
         {

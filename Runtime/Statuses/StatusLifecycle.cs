@@ -86,7 +86,7 @@ namespace EasyCombat
                 }
                 if (entry.IndependentStacks.Count == 0) RemoveAt(index,StatusRemovalReason.Consumed);
             }
-            modifiersDirty = true; ReconcileScheduler();
+            InvalidateModifiers(); ReconcileScheduler();
             lifecycle.Publish(new StatusChange(this,definition,StatusChangeKind.Removed,before,before-count,reason:StatusRemovalReason.Consumed));
             changedSignal.Publish(); return true;
         }

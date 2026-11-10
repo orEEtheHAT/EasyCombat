@@ -9,6 +9,11 @@ namespace EasyCombat
         internal CombatHitKey(MonoBehaviour receiver)
         { Receiver=CombatTargetGroups.Key(receiver); Life=Receiver is Health health ? health.Identity.Id : CombatTargetGroups.Life(receiver); }
         public bool Equals(CombatHitKey other)=>ReferenceEquals(Receiver,other.Receiver) && Life==other.Life;
+        internal bool MatchesLife(MonoBehaviour receiver, long adapterLife)
+        {
+            if (receiver is Health health) return ReferenceEquals(Receiver, health) && Life == health.Identity.Id;
+            return (adapterLife == 0 || CombatTargetGroups.Life(receiver) == adapterLife) && Equals(new CombatHitKey(receiver));
+        }
         public override bool Equals(object obj)=>obj is CombatHitKey other && Equals(other);
         public override int GetHashCode()=>(ReferenceEquals(Receiver,null) ? 0 : System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Receiver))*397 ^ Life.GetHashCode();
     }

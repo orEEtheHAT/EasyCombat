@@ -61,6 +61,7 @@ namespace EasyCombat
             if (launched) throw new InvalidOperationException("An active projectile cannot be launched twice.");
             if (attack.ImpactArea != null && (areaPool == null || !areaPool.isActiveAndEnabled))
                 throw new ArgumentException("This projectile requires an active DamageAreaPool.");
+            trace.ResetDistantContactHint(pose, origin);
             trace.Begin(attack, request, sourceRoot, shotDirection, areaPool);
             ConfigureGuidance(attack.ProjectileMotion,sourceRoot,homingTarget);
             speed = attack.ProjectileSpeed;

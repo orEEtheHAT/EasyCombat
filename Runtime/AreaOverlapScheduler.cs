@@ -80,6 +80,9 @@ namespace EasyCombat
         }
         private void Advance(float deltaTime)
         {
+#if EASYCOMBAT_CPU_CAPTURE
+            using var sample = CombatCpuMarkers.OverlapFields.Auto();
+#endif
             advancing = true;
             clock += deltaTime;
             // Registrations from damage callbacks are considered on the next call.
@@ -90,8 +93,7 @@ namespace EasyCombat
                 for (var g = 0; g < count && !clearing; g++)
                 {
                     var group = groups[g];
-                    for (var i = group.Leases.Count - 1; i >= 0; i--)
-                        if (!group.Leases[i].Active) group.Leases.RemoveAt(i);
+                    if (group.Next <= clock + Epsilon) CompactInactive(group.Leases);
                     var ticks = 0;
                     while (!clearing && group.Leases.Count > 0 && group.Next <= clock + Epsilon && ticks++ < 8)
                     {
@@ -100,17 +102,20 @@ namespace EasyCombat
                         Pulse(group, at, lastLease);
                     }
                     if (clearing) return;
+                    bool removed = false;
                     for (var i = group.Leases.Count - 1; i >= 0; i--)
                     {
                         var lease = group.Leases[i];
-                        if (!lease.Active) { group.Leases.RemoveAt(i); continue; }
+                        if (!lease.Active) { group.Leases[i] = default; removed = true; continue; }
                         lease.Area.SetOverlapAge(clock - lease.Start);
                         if (clock + Epsilon >= lease.End && group.Next > lease.End + Epsilon)
                         {
-                            group.Leases.RemoveAt(i);
+                            group.Leases[i] = default;
+                            removed = true;
                             lease.Area.Stop();
                         }
                     }
+                    if (removed && !clearing) CompactInactive(group.Leases, markedOnly: true);
                 }
                 // Retain an empty group's clock until its next tick, so re-entering cannot restart immediate damage.
                 for (var g = groups.Count - 1; g >= 0; g--)
@@ -121,9 +126,24 @@ namespace EasyCombat
             }
             finally { advancing = false; }
         }
+        // Keep registration order for winner ties and callbacks. A whole cohort can expire together.
+        private static void CompactInactive(List<Lease> leases, bool markedOnly = false)
+        {
+            int write = 0;
+            for (int read = 0; read < leases.Count; read++)
+            {
+                var lease = leases[read];
+                if (markedOnly ? lease.Id == 0 : !lease.Active) continue;
+                if (write != read) leases[write] = lease;
+                write++;
+            }
+            if (write < leases.Count) leases.RemoveRange(write, leases.Count - write);
+        }
+
         private static void Pulse(Group group, double at, long lastLease)
         {
             group.Winners.Clear(); group.Indices.Clear();
+            var query = AreaDamageQuery.Rent();
             try
             {
                 for (var i = 0; i < group.Leases.Count; i++)
@@ -132,10 +152,10 @@ namespace EasyCombat
                     if (!lease.Active || lease.Id > lastLease || lease.Start > at + Epsilon || lease.End + Epsilon < at) continue;
                     try
                     {
-                        var count = lease.Area.SelectOverlapCandidates();
+                        var count = lease.Area.SelectOverlapCandidates(query);
                         for (var c = 0; c < count; c++)
                         {
-                            var candidate = lease.Area.GetOverlapCandidate(c);
+                            var candidate = query.GetCandidate(c);
                             if (!lease.Area.AllowsOverlapCandidate(candidate)) continue;
                             var winner = new Winner { Lease = lease, Candidate = candidate };
                             if (group.Indices.TryGetValue(candidate.Group, out var index))
@@ -147,7 +167,7 @@ namespace EasyCombat
                             else { group.Indices.Add(candidate.Group, group.Winners.Count); group.Winners.Add(winner); }
                         }
                     }
-                    finally { if (lease.Area != null) lease.Area.ClearOverlapSelection(); }
+                    finally { query.ClearSelection(); }
                 }
                 for (var i = 0; i < group.Winners.Count; i++)
                 {
@@ -155,7 +175,7 @@ namespace EasyCombat
                     if (winner.Lease.Active) winner.Lease.Area.ApplyOverlapCandidate(winner.Candidate, winner.Lease.Id);
                 }
             }
-            finally { group.Winners.Clear(); group.Indices.Clear(); }
+            finally { AreaDamageQuery.Return(query); group.Winners.Clear(); group.Indices.Clear(); }
         }
         private void OnDestroy()
         {
