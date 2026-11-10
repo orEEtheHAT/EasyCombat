@@ -96,7 +96,7 @@ namespace EasyCombat
             var multiplier = settings.DistanceFalloff ? Mathf.Lerp(1, settings.EdgeMultiplier, candidate.Distance / settings.Radius) : 1;
             if (multiplier <= 0) return false;
             var direction = candidate.Point - center;
-            var request = damage.Scale(multiplier).At(candidate.Point, direction.sqrMagnitude > .000001f ? direction.normalized : forward);
+            var request = damage.At(candidate.Point, direction.sqrMagnitude > .000001f ? direction.normalized : forward, multiplier);
             var result = settings.UseHurtboxMultiplier && candidate.Zone != null
                 ? candidate.Zone.ApplyDamage(request) : ((IDamageable)candidate.Receiver).ApplyDamage(request);
             onImpact?.Invoke(new DamageImpact(candidate.Collider, candidate.Point, -request.Direction, result));

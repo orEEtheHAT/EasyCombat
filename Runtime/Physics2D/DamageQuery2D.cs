@@ -144,7 +144,7 @@ namespace EasyCombat
                     if(!contact.IsCurrent) continue;
                     var multiplier=settings.DistanceFalloff ? Mathf.Lerp(1,settings.EdgeMultiplier,contact.Distance/settings.Radius) : 1; if(multiplier<=0) continue;
                     var direction=contact.Point-center; if(direction.sqrMagnitude<.000001f) direction=forward; else direction.Normalize();
-                    var impact=contact.Apply(damage.Scale(multiplier).At(contact.Point,direction),settings.UseHurtboxMultiplier);
+                    var impact=contact.Apply(damage.At(contact.Point,direction,multiplier),settings.UseHurtboxMultiplier);
                     onImpact?.Invoke(impact); if(impact.Result.HitApplied || impact.Result.StatusesApplied>0) affected++;
                 }
                 return affected;
@@ -165,6 +165,7 @@ namespace EasyCombat
         private bool piercing;
         private int maximumTargets,contacts;
         private Vector2 direction;
+        internal Vector2 Direction => direction;
         public bool Active { get; private set; }
         public float Radius { get; private set; }
         public void Begin(AttackDefinition attack,DamageInfo request,Transform source,Vector2 forward)
@@ -172,9 +173,9 @@ namespace EasyCombat
             Clear(); owner=source; damage=request; area=new AreaSettings(attack.Area); mask=attack.HitMask; triggers=attack.Triggers;
             piercing=attack.ContactBehavior==ContactBehavior.PierceTargets; maximumTargets=attack.MaximumTargets; direction=forward.normalized; Radius=attack.HitRadius; Active=true;
         }
-        public void Advance(Vector2 origin,float distance,Action<DamageImpact2D> callback,out Vector2 end)
+        public void Advance(Vector2 origin,float distance,Action<DamageImpact2D> callback,out Vector2 end,Vector2? displacement=null)
         {
-            end=origin+direction*distance; if(!Active) return;
+            end=origin+(displacement ?? direction*distance); if(!Active) return;
             var count=query.Collect(origin,direction,distance,Radius,mask,triggers,owner);
             try
             {

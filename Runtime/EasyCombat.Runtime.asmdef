@@ -1,6 +1,6 @@
 {
   "name": "EasyCombat.Runtime",
   "rootNamespace": "EasyCombat",
-  "references": [],
+  "references": ["Unity.Burst"],
   "autoReferenced": true
 }

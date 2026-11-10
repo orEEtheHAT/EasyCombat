@@ -1,5 +1,18 @@
 # Release validation
 
+## 0.4.0 — 2026-11-10
+
+Unity 6000.3.22f1 passed 349 EditMode and 160 PlayMode tests in an isolated project. Windows x64 players ran both projectile execution modes. A Unity 6.3 Web player configured for Parallel used Single Thread and applied 8 damage at the blast center and 4 at half radius.
+
+The Windows x64 headless benchmark compared the pre-Jobs implementation with the current Single Thread and Parallel modes on an Intel Core i7-14700KF. The values below are median window means in milliseconds per combat update across six warmed windows per scenario and mode. All three modes agreed on hit counts, periodic ticks and per-target health loss.
+
+| Workload | Pre-Jobs | Single Thread | Parallel |
+|---|---:|---:|---:|
+| 1,000 projectiles in empty space | 0.98 | 0.93 | 0.67 |
+| 5,000 projectiles in empty space | 4.84 | 4.53 | 2.73 |
+| 1,000 projectiles with direct hits | 2.06 | 2.06 | 1.81 |
+| 1,000 projectiles with splash and burn | 5.85 | 5.56 | 5.30 |
+
 ## 0.3.1 — 2026-11-10
 
 Unity 6000.3.22f1 / Windows, Intel Core i7-14700KF. All 349 EditMode + 148 PlayMode tests in the factory project passed (497 total, including optional adapters and local integration tests). In an isolated project, all 9 independent audit checks passed, including the five regressions and a 2000-case seeded shield/resistance comparison. The additional sender-observer fanout case and all five fixes also passed in the desktop release WebGL player.

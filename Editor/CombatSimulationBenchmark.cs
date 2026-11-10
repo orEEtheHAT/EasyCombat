@@ -15,6 +15,7 @@ namespace EasyCombat.Editor
     public sealed class CombatBenchmarkRow
     {
         public int projectiles, steps, queriesPerStep;
+        public long measuredTravelQueries;
         public double meanMilliseconds, p95Milliseconds;
         public long allocatedBytes=-1; // Kept for old report consumers; bytes are not measured.
         public long allocationEvents=-1;
@@ -81,6 +82,7 @@ namespace EasyCombat.Editor
                     const int steps = 120;
                     var samples = new double[steps];
                     var totalTicks = 0L;
+                    long firstQuery=DamageQuery.TravelQueries;
                     for (var step = 0; step < steps; step++)
                     {
                         var start = Stopwatch.GetTimestamp();
@@ -89,6 +91,7 @@ namespace EasyCombat.Editor
                         samples[step] = elapsed * 1000d / Stopwatch.Frequency;
                         totalTicks += elapsed;
                     }
+                    long travelQueries=DamageQuery.TravelQueries-firstQuery;
                     CombatAllocationMeter.TryMeasure(()=>
                     {
                         for(var step=0;step<steps;step++)
@@ -99,7 +102,8 @@ namespace EasyCombat.Editor
                     Array.Sort(samples);
                     report.rows.Add(new CombatBenchmarkRow
                     {
-                        projectiles = count, steps = steps, queriesPerStep = count * 2,
+                        projectiles = count, steps = steps, measuredTravelQueries=travelQueries,
+                        queriesPerStep=(int)Math.Round((double)travelQueries/steps),
                         meanMilliseconds = totalTicks * 1000d / Stopwatch.Frequency / steps,
                         p95Milliseconds = samples[(int)Math.Ceiling(steps * .95d) - 1], allocationEvents = allocation
                     });

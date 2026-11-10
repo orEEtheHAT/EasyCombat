@@ -397,8 +397,8 @@ namespace EasyCombat.Editor
             Text(scroll, "Боевые правила подходят для Bullet Hell. Текущая доставка снарядов — базовый вариант, предел нагрузки ещё не подтверждён в WebGL.", "lead");
             var cards = Box(scroll, "row flow");
             GuideCard(cards, "УЖЕ ЕСТЬ", "Повторное использование", "Пул снарядов, буферы физических запросов, кэш резистов и один планировщик активных статусов.");
-            GuideCard(cards, "ТЕКУЩАЯ ЦЕНА", "GO + Update на снаряд", "До двух 3D Physics-запросов за шаг: overlap и sweep. Лимит пула по умолчанию 128 активных снарядов; его можно настроить.");
-            GuideCard(cards, "ДЛЯ ТЫСЯЧ ПУЛЬ", "Следующий слой доставки", "Общая симуляция, простые проверки попадания и пакетный рендер. Паттерны, кривые траектории и Physics2D пока не реализованы.");
+            GuideCard(cards, "ТЕКУЩАЯ ЦЕНА", "GO + Update на снаряд", "Пустой короткий шаг проверяется одним запросом. Рядом с коллайдерами выполняются точные overlap и sweep. Лимит пула по умолчанию 128; настрой его под игру.");
+            GuideCard(cards, "ДЛЯ ТЫСЯЧ ПУЛЬ", "Плотность контактов", "Сравни полёт без контактов, пробивание и залп в упор. Для оценки FPS включи настоящий рендер, UI и VFX на целевом устройстве.");
             var panel = Box(scroll, "guide-card recipe");
             Text(panel, "Диагностика CPU в Editor", "card-title");
             Text(panel, "100 / 500 / 1000 снарядов, 30 шагов прогрева + 120 измерений на вариант. Редкая сцена с препятствиями без попаданий. Измеряется ручной вызов Simulate: без отрисовки, стоимости Unity Update, спавна, урона, VFX и UI. Это не FPS и не результат WebGL.", "guide-text");
@@ -411,9 +411,9 @@ namespace EasyCombat.Editor
             if (report != null && report.rows != null && report.rows.Count > 0)
             {
                 Text(panel, report.device + "  ·  Unity " + report.unityVersion + "  ·  " + report.utcTime, "muted wrap");
-                ResultRow(panel, "Снаряды", "Среднее / шаг", "P95 / шаг", "GC / 120 шагов");
+                ResultRow(panel, "Пули · запросы/шаг", "Среднее / шаг", "P95 / шаг", "GC / 120 шагов");
                 foreach (var row in report.rows)
-                    ResultRow(panel, row.projectiles.ToString(), $"{row.meanMilliseconds:0.###} мс", $"{row.p95Milliseconds:0.###} мс", row.allocationEvents>=0 ? $"{row.allocationEvents} GC.Alloc" : "GC: недоступно");
+                    ResultRow(panel, row.measuredTravelQueries>0 ? $"{row.projectiles} · {row.queriesPerStep}" : row.projectiles.ToString(), $"{row.meanMilliseconds:0.###} мс", $"{row.p95Milliseconds:0.###} мс", row.allocationEvents>=0 ? $"{row.allocationEvents} GC.Alloc" : "GC: недоступно");
             }
             Text(scroll, "Для 60 FPS весь кадр должен уложиться в 16.67 мс. Проверяй реальную WebGL-сборку на целевых устройствах с рендером, столкновениями, звуком и эффектами. Нулевой GC в этом замере не означает нулевой GC всей игры.", "guide-text");
         }

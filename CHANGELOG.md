@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 — 2026-11-10
+
+- Resolve arriving projectiles before issuing speculative 3D sweeps for the rest of a volley. Recent contacts guide the batch boundary; hit order and live collision checks stay intact.
+- Build a single positioned damage request per AOE recipient, including distance falloff in 3D and 2D.
+
+- Batch automatic straight 3D and 2D projectile flight through Jobs and Burst. Parallel is the default, with a single-thread fallback for Unity 6.3 Web and players without job workers.
+- Parallel straight 3D volleys can discard empty swept capsules using batched physics queries. Ordered live queries take over when gameplay or moving colliders can change later results.
+- First-import projectile settings offer English mode explanations and can be reopened from the EasyCombat menu. The choice is shared by the project and its player builds.
+
+- Short 3D projectile steps can reject empty swept volumes with one conservative physics query. Nearby contacts retain the existing ordered overlap/sweep pipeline.
+- 3D traces lease contact buffers during resolution and keep the first four visited life identities inline. Longer pierces still use dynamically sized storage.
+- Combat Studio measures physical travel queries in its Editor benchmark. Added regressions for grazing hits, moving triggers, a local physics scene, nested shots and pooled long pierces.
+
 ## 0.3.1 — 2026-11-10
 
 - Delayed hits cannot reflect onto a recycled attacker. Reset requests during damage/healing observers are coalesced and executed after notifications, before deferred reactions. On-hit statuses stop after a reset request.

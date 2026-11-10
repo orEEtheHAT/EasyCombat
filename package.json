@@ -1,7 +1,7 @@
 {
   "name": "com.oreethehat.easy-combat",
   "displayName": "EasyCombat",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "unity": "6000.3",
   "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
   "author": {
@@ -51,6 +51,7 @@
   "changelogUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/orEEtheHAT/EasyCombat/blob/main/LICENSE.md",
   "dependencies": {
+    "com.unity.burst": "1.8.30",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.particlesystem": "1.0.0",
     "com.unity.modules.jsonserialize": "1.0.0",

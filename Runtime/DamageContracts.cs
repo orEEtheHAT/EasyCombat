@@ -78,9 +78,15 @@ namespace EasyCombat
             resolved = new DamageInfo(parts, Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
             return true;
         }
-        public DamageInfo Scale(float multiplier) => HasFormula
-            ? new DamageInfo(Formula.Scale(multiplier), Source, Point, Direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection)
-            : new DamageInfo(Parts.Scale(multiplier), Source, Point, Direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
+        public DamageInfo Scale(float multiplier) => At(Point, Direction, multiplier);
+
+        internal DamageInfo At(Vector3 point, Vector3 direction, float multiplier)
+        {
+            if (multiplier == 1f) return At(point, direction);
+            return HasFormula
+                ? new DamageInfo(Formula.Scale(multiplier), Source, point, direction, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection)
+                : new DamageInfo(Parts.Scale(multiplier), Source, point, direction, IsCritical, IsPeriodic, OnHitStatuses, Origin, StatusPolicy, Protection);
+        }
         public DamageInfo WithProtection(DamageProtection protection) => HasFormula
             ? new DamageInfo(Formula,Source,Point,Direction,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection)
             : new DamageInfo(Parts,Source,Point,Direction,IsCritical,IsPeriodic,OnHitStatuses,Origin,StatusPolicy,protection);

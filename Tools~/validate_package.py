@@ -25,7 +25,9 @@ for path in ROOT.rglob('*.asmdef'):
           'Package assembly depends on project code: ' + data['name'])
     check(data['name'] not in assemblies, 'Duplicate assembly: ' + data['name'])
     assemblies[data['name']] = data
-check(assemblies['EasyCombat.Runtime']['references'] == [], 'Core runtime acquired an assembly dependency')
+check(assemblies['EasyCombat.Runtime']['references'] == ['Unity.Burst'],
+      'Core runtime must reference only Unity.Burst')
+check('com.unity.burst' in manifest.get('dependencies', {}), 'Missing Burst package dependency')
 check(assemblies['EasyCombat.Editor']['references'] == ['EasyCombat.Runtime'], 'Core editor acquired an external dependency')
 library_source = (ROOT/'Editor/CombatAssetLibrary.cs').read_text(encoding='utf-8-sig')
 category_sizes = {}

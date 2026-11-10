@@ -8,6 +8,16 @@ namespace EasyCombat
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, "GamesFactory.Combat", "GamesFactory.Combat")]
     public sealed class DamageQuery
     {
+#if UNITY_EDITOR
+        internal static long TravelQueries { get; private set; }
+#endif
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        internal static void CountTravelQuery()
+        {
+#if UNITY_EDITOR
+            TravelQueries++;
+#endif
+        }
         private RaycastHit[] hits = new RaycastHit[16];
         private Collider[] overlaps = new Collider[16];
         private readonly List<DamageContact> contacts = new List<DamageContact>(16);
@@ -25,6 +35,7 @@ namespace EasyCombat
             {
                 while (true)
                 {
+                    CountTravelQuery();
                     overlapCount = CombatPhysics.Scene.OverlapSphere(origin, Mathf.Max(radius, .001f), overlaps, mask, triggers);
                     if (overlapCount < overlaps.Length) break;
                     Array.Resize(ref overlaps, overlaps.Length * 2);
@@ -40,6 +51,7 @@ namespace EasyCombat
                     int count;
                     while (true)
                     {
+                        CountTravelQuery();
                         count = radius > 0
                             ? CombatPhysics.Scene.SphereCast(origin, radius, direction, hits, distance, mask, triggers)
                             : CombatPhysics.Scene.Raycast(origin, direction, hits, distance, mask, triggers);
