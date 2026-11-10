@@ -6,6 +6,55 @@ namespace EasyCombat.Integrations.Tests
 {
     public sealed class FirstPersonAreaTests
     {
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator CombatRestrictionsAndImpulsesUseTheSamePlayer()
+        {
+            var actor = new GameObject("Combat FPS");
+            actor.SetActive(false);
+            var speed = ScriptableObject.CreateInstance<CombatStatDefinition>();
+            var slow = ScriptableObject.CreateInstance<StatusDefinition>();
+            try
+            {
+                actor.transform.position = new Vector3(2500, 2500, 2500);
+                var statuses = actor.AddComponent<StatusController>();
+                var control = actor.AddComponent<CombatControl>();
+                var player = actor.AddComponent<CombatFirstPersonController>();
+                actor.GetComponent<MovementInfluences>().MovementSpeedStat = speed;
+                slow.StatModifiers = new[] { new StatusStatModifier(speed, .5f) };
+                player.maxWalkSpeed = 8f;
+                player.canEverJump = true;
+                actor.SetActive(true);
+                yield return null;
+                player.SetMovementMode(Character.MovementMode.Falling);
+                Assert.IsTrue(player.IsJumpAllowed());
+                Assert.IsTrue(statuses.Apply(slow));
+                Assert.That(player.GetMaxSpeed(), Is.EqualTo(4f));
+                Assert.IsTrue(control.TryRestrict(CombatRestriction.Move | CombatRestriction.Jump | CombatRestriction.Turn, out var lockHandle));
+                Assert.That(player.GetMaxSpeed(), Is.Zero);
+                Assert.IsFalse(player.IsJumpAllowed());
+                var facing = player.GetRotation();
+                player.AddControlYawInput(45f);
+                var receiver = actor.GetComponent<ICombatMotionReceiver>();
+                Assert.AreSame(player, receiver);
+                Assert.IsTrue(receiver.ApplyMotion(new CombatMotionIntent(Vector3.right * 6f)));
+                player.Simulate(.02f);
+                Assert.That(Quaternion.Angle(facing, player.GetRotation()), Is.LessThan(.1f));
+                Assert.That(player.GetVelocity().x, Is.GreaterThan(1f));
+                Assert.IsTrue(lockHandle.Remove());
+                Assert.That(player.GetMaxSpeed(), Is.EqualTo(4f));
+                Assert.IsTrue(player.IsJumpAllowed());
+                player.AddControlYawInput(45f);
+                player.Simulate(.02f);
+                Assert.That(Quaternion.Angle(facing, player.GetRotation()), Is.GreaterThan(40f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(slow);
+                Object.DestroyImmediate(speed);
+            }
+        }
+
         [UnityEngine.TestTools.UnityTest] public System.Collections.IEnumerator AreaMultiplierFollowsWalkSprintCrouchCustomAndFlight()
         {
             var floor=GameObject.CreatePrimitive(PrimitiveType.Cube); var actor=new GameObject("FPS"); actor.SetActive(false);

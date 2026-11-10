@@ -4,7 +4,7 @@
 
 Общие описания хранятся в ScriptableObject. Текущее HP, задержка оружия, стаки и таймеры принадлежат конкретному объекту.
 Игровой код не изменяет SO во время игры. Производные кэши конфигурации допустимы: например, словарь резистов внутри профиля.
-Основная сборка EasyCombat зависит только от Unity. ECM2 и Easy Feedbacks подключены отдельными адаптерами.
+Для FPS-игрока импортируй EasyMovement Adapter, для аудио и визуальных откликов — Easy Feedbacks Adapter. EasyMovement использует установленный ECM2.
 
 Диагностика памяти с версии 0.3.1 считает события GC.Alloc при положительном и пустом контролях. Исторические записи о байтах в старых прогонах не доказывают отсутствия выделений. Актуальные результаты: [Validation](Validation.md).
 
@@ -56,7 +56,7 @@ SO описывает правила. Компоненты исполняют и
 Чтобы вооружить объект, назначьте AttackDefinition компоненту DamageEmitter; для Projectile ему нужен ProjectilePool.
 Контроллер ввода или AI вызывает TryFire(origin, direction). SO сам не стреляет и не задаёт поведение AI.
 На цели нужен Health с HealthDefinition и коллайдер; Hurtbox связывает дочернюю зону попадания со здоровьем и задаёт её множитель.
-Для статусов добавьте StatusController. HealthFeedbacks связывает события здоровья с Easy Feedbacks, а CharacterStatusModifiers — модификаторы движения с ECM2.
+Для статусов добавьте StatusController. HealthFeedbacks связывает события здоровья с Easy Feedbacks. На FPS-игроке CombatFirstPersonController применяет множитель скорости через MovementInfluences.
 
 Начинать удобнее с варианта FireLauncher: поменять диапазон урона, темп и вероятность Burning, назначить вариант DamageEmitter и проверить на полигоне.
 
@@ -515,7 +515,7 @@ SetValue задаёт локальное значение поверх проф�
 StatusController.GetStatMultiplier возвращает произведение модификаторов, по умолчанию 1.
 Множитель применяется на каждый стек: 0.8 при двух стаках даёт 0.64.
 DamageEmitter использует ключи DamageModifierStat и FireRateModifierStat из оружия.
-CharacterStatusModifiers подключает выбранный ключ к maxWalkSpeed ECM2; базовую скорость можно менять через SetBaseWalkSpeed.
+На FPS-игроке назначьте выбранный ключ в MovementInfluences.MovementSpeedStat. Базовые скорости ходьбы, спринта и других режимов настраиваются в EasyMovement.
 Новый потребитель характеристики подключается аналогичным адаптером.
 HealthFeedbacks подписывается на события здоровья и запускает Easy Feedbacks.
 PrimeTween используется только в демонстрационном интерфейсе.

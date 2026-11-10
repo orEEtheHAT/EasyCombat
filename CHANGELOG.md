@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 — 2026-11-10
+
+- Removed the standalone ECM2 Adapter and consolidated player movement integration into the EasyMovement Adapter sample. Its FPS controller handles gait scaling, combat restrictions and knockback/pull. See the [sample README](Samples~/EasyMovement/README.md) when migrating previously imported adapter components.
+
 ## 0.4.1 — 2026-11-10
 
 - Mixed projectile batches can probe a contiguous run of straight 3D shots after older guided shots have resolved. Launch order, callback-driven movement and target recycling still use live contacts.

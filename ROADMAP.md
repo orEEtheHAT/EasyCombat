@@ -37,7 +37,7 @@ User-approved scope: one Unity package including Combat, Stats, Resources and Ab
 
 ## 6. Control adapters
 - [x] Overlapping action restrictions, stun/root/silence/disarm.
-- [x] Knockback/pull intent and an ECM2 adapter without mandatory dependency.
+- [x] Knockback/pull intent and an optional EasyMovement FPS receiver.
 
 ## 7. Life states
 - [x] Downed/dead/revived, non-lethal damage and minimum-health rules; health snapshots preserve downed state.
