@@ -1,5 +1,7 @@
 # Combat Lab
 
+**Compatibility:** EasyCombat 0.7.0+. No prerequisite sample imports.
+
 Import the sample, then choose **EasyCombat → Samples → Create Combat Lab** and press Play. Every run creates a new asset folder without overwriting existing work.
 
 - Shooter: wide hitscan and random criticals.

@@ -7,6 +7,38 @@ namespace EasyCombat.Integrations.Tests
     public sealed class FirstPersonAreaTests
     {
         [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator InputBlockAllowsScriptedCombatMovementAndStillHonorsRestrictions()
+        {
+            var actor=new GameObject("Blocked combat FPS"); actor.SetActive(false);
+            try
+            {
+                actor.transform.position=new Vector3(2600,2600,2600);
+                var control=actor.AddComponent<CombatControl>();
+                var player=actor.AddComponent<CombatFirstPersonController>();
+                // Runtime-created ECM2 components do not receive the editor Reset defaults.
+                player.maxFlySpeed=8;
+                actor.SetActive(true); yield return null;
+                player.SetMovementMode(Character.MovementMode.Flying);
+                using(player.AcquireInputBlock(control))
+                {
+                    player.SetMovementDirection(Vector3.forward);
+                    Assert.That(player.InputBlocked,Is.True);
+                    yield return null;
+                    Assert.That(player.GetMovementDirection(),Is.EqualTo(Vector3.forward));
+                    Assert.That(player.GetMaxSpeed(),Is.GreaterThan(0));
+                    Assert.That(player.ApplyMotion(new CombatMotionIntent(Vector3.right*4)),Is.True);
+                    player.Simulate(.02f);
+                    Assert.That(player.GetVelocity().x,Is.GreaterThan(0));
+                    Assert.That(control.TryRestrict(CombatRestriction.Move,out var restriction),Is.True);
+                    Assert.That(player.GetMaxSpeed(),Is.Zero);
+                    Assert.That(restriction.Remove(),Is.True);
+                }
+                Assert.That(player.InputBlocked,Is.False);
+            }
+            finally { Object.DestroyImmediate(actor); }
+        }
+
+        [UnityEngine.TestTools.UnityTest]
         public System.Collections.IEnumerator CombatRestrictionsAndImpulsesUseTheSamePlayer()
         {
             var actor = new GameObject("Combat FPS");

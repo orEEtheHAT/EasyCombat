@@ -33,7 +33,6 @@ namespace EasyCombat
         private struct State { public AbilityDefinition Definition; public int Charges; public float Cooldown,Recharge; }
         private State[] states=Array.Empty<State>();
         private Health owner;
-        private CombatResources resources;
         private readonly DamageQuery visibility=new DamageQuery();
         private readonly AttackTrace trace=new AttackTrace();
         private readonly AreaDamageQuery area=new AreaDamageQuery();
@@ -65,7 +64,7 @@ namespace EasyCombat
         private void OnEnable() { if(!configured) Configure(abilities); else { Bind(); Reconcile(); } }
         private void Bind()
         {
-            owner=GetComponent<Health>(); resources=GetComponent<CombatResources>();
+            owner=GetComponent<Health>();
             if(!isActiveAndEnabled) return;
             owner.Changed-=HealthChanged; owner.Changed+=HealthChanged;
             owner.Died-=OwnerStopped; owner.Died+=OwnerStopped; owner.Downed-=OwnerStopped; owner.Downed+=OwnerStopped;
@@ -149,8 +148,7 @@ namespace EasyCombat
                 if(target==null || blocked!=target) { reason=AbilityRejection.LineOfSight; return false; }
             }
             context=new AbilityContext(this,definition,owner,target,origin,point,direction,castOrigin);
-            if(resources==null) resources=GetComponent<CombatResources>();
-            if(definition.Costs.Length>0 && (resources==null || !resources.CanSpend(definition.Costs))) { reason=AbilityRejection.Resources; return false; }
+            if(definition.Costs.Length>0 && !CombatCosts.CanSpend(gameObject,definition.Costs)) { reason=AbilityRejection.Resources; return false; }
             var projectiles=0; var melees=0; var beams=0; BeamDefinition beam=null;
             foreach(var action in definition.Actions)
             {
@@ -162,7 +160,7 @@ namespace EasyCombat
             }
             if(melees>1 || beams>1) { reason=AbilityRejection.Delivery; return false; }
             if(beam!=null && beam.PulseImmediately && beam.PulseCosts.Length>0
-                && (resources==null || !resources.CanSpend(definition.Costs,beam.PulseCosts))) { reason=AbilityRejection.Resources; return false; }
+                && !CombatCosts.CanSpend(gameObject,definition.Costs,beam.PulseCosts)) { reason=AbilityRejection.Resources; return false; }
             if(projectiles>0 && (projectilePool==null || projectilePool.RemainingCapacity<projectiles)) { reason=AbilityRejection.Delivery; return false; }
             return true;
         }
@@ -178,7 +176,7 @@ namespace EasyCombat
         {
             if(!Prepare(out var context,out var reason)) { CancelNow(reason); return; }
             var index=casting; var definition=context.Definition; var receipt=default(ResourceSpendReceipt);
-            if(definition.Costs.Length>0 && !resources.TrySpendSilently(definition.Costs,out receipt)) { CancelNow(AbilityRejection.Resources); return; }
+            if(definition.Costs.Length>0 && !CombatCosts.TrySpend(gameObject,definition.Costs,out receipt)) { CancelNow(AbilityRejection.Resources); return; }
             // Reserve all timing and charges before any effect/callback can re-enter.
             var state=states[index]; state.Cooldown=definition.Cooldown;
             if(definition.MaximumCharges>0) { if(state.Charges==definition.MaximumCharges) state.Recharge=definition.ChargeRecovery; state.Charges--; }

@@ -14,7 +14,6 @@ namespace EasyCombat
         private DamageOrigin origin;
         private Health sourceHealth;
         private Transform source;
-        private CombatResources resources;
         private long sourceLife;
         private double elapsed,nextPulse;
         private float duration,interval,multiplier;
@@ -43,13 +42,13 @@ namespace EasyCombat
                 || !CombatControl.IsAllowed(OwnerRoot.gameObject,CombatRestriction.Cast)) return false;
             var stats=OwnerRoot.GetComponent<StatusController>(); var outgoing=stats!=null ? stats.GetStatMultiplier(recipe.Attack.DamageModifierStat) : 1;
             if(!CombatMath.Positive(outgoing) || !recipe.Attack.RollDamage(OwnerRoot.gameObject,Muzzle.position,Muzzle.forward,0,1,outgoing).IsValid) return false;
-            var budget=OwnerRoot.GetComponent<CombatResources>(); return recipe.PulseCosts.Length==0 || budget!=null && budget.CanSpend(recipe.PulseCosts);
+            return recipe.PulseCosts.Length==0 || CombatCosts.CanSpend(OwnerRoot.gameObject,recipe.PulseCosts);
         }
         public bool Begin(BeamDefinition recipe,DamageOrigin parent=default)
         {
             if(!CanBegin(recipe)) return false;
             definition=recipe; source=OwnerRoot; sourceHealth=source.GetComponentInParent<Health>(); sourceLife=sourceHealth!=null ? sourceHealth.Identity.Id : 0;
-            resources=source.GetComponent<CombatResources>(); var stats=source.GetComponent<StatusController>(); multiplier=stats!=null ? stats.GetStatMultiplier(recipe.Attack.DamageModifierStat) : 1;
+            var stats=source.GetComponent<StatusController>(); multiplier=stats!=null ? stats.GetStatMultiplier(recipe.Attack.DamageModifierStat) : 1;
             origin=parent.CastId!=0 ? parent : DamageOrigin.Capture(source.gameObject,recipe.Attack);
             payload=recipe.RerollEachPulse ? default : recipe.Attack.RollRandom(source.gameObject,Muzzle.position,Muzzle.forward,multiplier,origin);
             if(!recipe.RerollEachPulse && !payload.IsValid) return false;
@@ -83,7 +82,7 @@ namespace EasyCombat
             var at=Muzzle.position; var direction=Muzzle.forward;
             if(!CombatMath.Finite(at) || !CombatMath.Finite(direction)) { Stop(); return; }
             var receipt=default(ResourceSpendReceipt);
-            if(definition.PulseCosts.Length>0 && (resources==null || !resources.TrySpendSilently(definition.PulseCosts,out receipt))) { Stop(); return; }
+            if(definition.PulseCosts.Length>0 && !CombatCosts.TrySpend(source.gameObject,definition.PulseCosts,out receipt)) { Stop(); return; }
             CombatReactionQueue.Enter();
             try
             {
@@ -98,7 +97,7 @@ namespace EasyCombat
         private void Finish()
         {
             if(finishing) return; finishing=true;
-            try { definition=null; payload=default; source=null; sourceHealth=null; resources=null; trace.Clear(); DeliveryScheduler.Unregister(this); ended.Publish(); }
+            try { definition=null; payload=default; source=null; sourceHealth=null; trace.Clear(); DeliveryScheduler.Unregister(this); ended.Publish(); }
             finally { finishing=false; }
         }
         private void Reconcile() { if(((ICombatDeliveryTick)this).WantsAutomaticTick) DeliveryScheduler.Register(this); else DeliveryScheduler.Unregister(this); }

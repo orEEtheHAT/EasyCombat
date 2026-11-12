@@ -1,1 +1,27 @@
-{ "name":"EasyCombat.EasyMovement", "references":["EasyCombat.Runtime","EasyMovement.FirstPerson","EasyFootsteps.Runtime","ECM2","Unity.Cinemachine"], "autoReferenced":true }
+{
+  "name": "EasyCombat.EasyMovement",
+  "references": [
+    "EasyCombat.Runtime",
+    "EasyMovement.FirstPerson",
+    "EasyFootsteps.Runtime",
+    "ECM2",
+    "Unity.Cinemachine"
+  ],
+  "autoReferenced": true,
+  "versionDefines": [
+    {
+      "name": "com.oreethehat.easy-combat",
+      "expression": "0.7.0",
+      "define": "EASY_WAVE1_COMBAT"
+    },
+    {
+      "name": "com.oreethehat.easy-movement",
+      "expression": "5.1.0",
+      "define": "EASY_WAVE1_MOVEMENT"
+    }
+  ],
+  "defineConstraints": [
+    "EASY_WAVE1_COMBAT",
+    "EASY_WAVE1_MOVEMENT"
+  ]
+}

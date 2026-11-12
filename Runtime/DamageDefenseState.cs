@@ -96,8 +96,7 @@ namespace EasyCombat
         internal bool CommitCosts(Health target,out ResourceSpendReceipt receipt)
         {
             receipt=default; if(pendingCostCount==0) return true;
-            var resources=target.GetComponent<CombatResources>();
-            return resources!=null && resources.TrySpendSilently(new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount),out receipt);
+            return CombatCosts.TrySpend(target.gameObject,new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount),out receipt);
         }
         internal bool Process(DefenseStage stage, in DefenseContext context, ref DamageAmounts amounts,
             ref DamageAmounts shields, ref DamageAmounts armor, ref DefenseBreakdown breakdown)
@@ -114,8 +113,7 @@ namespace EasyCombat
                 {
                     if(costs.Length>pendingCosts.Length-pendingCostCount) return false;
                     Array.Copy(costs,0,pendingCosts,pendingCostCount,costs.Length);
-                    var resources=context.Target.GetComponent<CombatResources>();
-                    if(resources==null || !resources.CanSpend(new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount+costs.Length))) continue;
+                    if(!CombatCosts.CanSpend(context.Target.gameObject,new ReadOnlySpan<ResourceCost>(pendingCosts,0,pendingCostCount+costs.Length))) continue;
                 }
                 var reduced = layer.Reduce(in context, amounts, ref pending[i]);
                 if (!reduced.IsValid || reduced.Count != amounts.Count || !Valid(pending[i])) return false;

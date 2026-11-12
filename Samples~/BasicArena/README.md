@@ -1,5 +1,7 @@
 # Basic Arena
 
+**Compatibility:** EasyCombat 0.7.0+. No prerequisite sample imports.
+
 Import this sample from Package Manager. Run **EasyCombat → Samples → Create Basic Arena**, then Play.
 
 The builder creates a scene and editable definitions in a new folder under `Assets/EasyCombatSamples/`. It never overwrites an existing sample. Select a weapon and a target, press FIRE, and inspect the health, shield and journal. Automatic fire and reset are available.

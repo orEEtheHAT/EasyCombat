@@ -5,5 +5,21 @@
     "EasyCombat.Runtime",
     "EasyFeedbacks.Runtime"
   ],
-  "autoReferenced": true
+  "autoReferenced": true,
+  "versionDefines": [
+    {
+      "name": "com.oreethehat.easy-combat",
+      "expression": "0.7.0",
+      "define": "EASY_WAVE1_COMBAT"
+    },
+    {
+      "name": "com.oreethehat.easy-feedbacks",
+      "expression": "1.8.0",
+      "define": "EASY_WAVE1_FEEDBACKS"
+    }
+  ],
+  "defineConstraints": [
+    "EASY_WAVE1_COMBAT",
+    "EASY_WAVE1_FEEDBACKS"
+  ]
 }

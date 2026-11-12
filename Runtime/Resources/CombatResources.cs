@@ -6,11 +6,14 @@ namespace EasyCombat
     internal struct ResourceSpendReceipt
     {
         internal CombatResources Owner;
+        internal CombatCostTransaction Transaction;
         internal ResourceChange[] Changes;
         internal int Count;
         internal long Life;
         internal void NotifyAndRelease()
         {
+            var transaction=Transaction; Transaction=null;
+            if(transaction!=null) { transaction.Complete(true); return; }
             var changes=Changes; if(changes==null) return;
             var owner=Owner; var count=Count; var life=Life; Changes=null; Owner=null; Count=0; Life=0;
             try { if(owner!=null) owner.NotifyDeferred(changes,count,life); }

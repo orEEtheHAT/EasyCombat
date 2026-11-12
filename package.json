@@ -1,7 +1,7 @@
 {
   "name": "com.oreethehat.easy-combat",
   "displayName": "EasyCombat",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "unity": "6000.3",
   "description": "Modular data-driven stats, health, damage, defenses, statuses and abilities for Unity.",
   "author": {
@@ -19,28 +19,33 @@
   "samples": [
     {
       "displayName": "Basic Arena",
-      "description": "Try a piercing hitscan, explosive fireball with a burning field, and cone attack against targets with different defenses.",
+      "description": "Piercing hitscan, explosive fireball with a burning field, and cone attacks against targets with different defenses. Requires EasyCombat 0.7.0+. No prerequisite sample imports.",
       "path": "Samples~/BasicArena"
     },
     {
       "displayName": "Combat Lab",
-      "description": "Shooter, swept melee, 100/500/1000 projectile volleys and poison combination, with bounded presentation. No third-party dependencies.",
+      "description": "Shooter, swept melee, pooled projectile volleys and poison combinations with bounded presentation. Requires EasyCombat 0.7.0+. No prerequisite sample imports.",
       "path": "Samples~/CombatLab"
     },
     {
       "displayName": "Attack Gallery",
-      "description": "Ten editable attack recipes and a ready-to-play firing range. Try a sword sweep, fireball with burning ground, chain orb, beam and more.",
+      "description": "Ten editable attack recipes and a ready-to-play firing range. Requires EasyCombat 0.7.0+. No prerequisite sample imports.",
       "path": "Samples~/AttackGallery"
     },
     {
       "displayName": "Easy Feedbacks Adapter",
-      "description": "Optional adapter. Requires EasyFeedbacks. Includes only EasyCombat integration code.",
+      "description": "Health and presentation feedback through optional player-aware context providers. Requires EasyCombat 0.7.0+, EasyFeedbacks 1.8.0+. No prerequisite sample imports.",
       "path": "Samples~/EasyFeedbacks"
     },
     {
       "displayName": "EasyMovement Adapter",
-      "description": "Connect EasyCombat slows, movement restrictions and knockback/pull to an EasyMovement FPS player. Includes a combat player prefab builder. Requires EasyMovement and its ECM2 installation.",
+      "description": "Combat slows, movement restrictions and knockback/pull for the EasyMovement FPS player, with a local prefab builder. Requires EasyCombat 0.7.0+, EasyMovement 5.1.0+, ECM2 (separate installation; tested with 1.4.3). No prerequisite sample imports.",
       "path": "Samples~/EasyMovement"
+    },
+    {
+      "displayName": "EasyResources Adapter",
+      "description": "One EasyResources wallet for ability, beam and block costs. Requires EasyCombat 0.7.0+, EasyResources 0.3.0+. No prerequisite sample imports.",
+      "path": "Samples~/EasyResources"
     }
   ],
   "repository": {

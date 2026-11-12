@@ -1,8 +1,8 @@
-# EasyCombat
+# EasyCombat 0.7.0
 
 Modular, ScriptableObject-driven combat for Unity 6.3. Stats, resources, health, damage, defenses, statuses and abilities belong to one package with independent internal modules.
 
-**Version 0.6.0.** EasyCombat owns combat rules and delivery, including [environmental damage and area effects](Documentation~/EnvironmentalCombat.ru.md). Game-specific physics and level authoring belong in the consuming project. See the [roadmap](ROADMAP.md) and [release validation](Documentation~/Validation.md) for scope and tested limits.
+**Version 0.7.0.** EasyCombat owns combat rules and delivery, including [environmental damage and area effects](Documentation~/EnvironmentalCombat.ru.md). Game-specific physics and level authoring belong in the consuming project. See the [roadmap](ROADMAP.md) and [release validation](Documentation~/Validation.md) for scope and tested limits.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Parallel can also check swept capsules together for straight 3D volleys with aut
 
 For local development, use **Package Manager → Add package from disk** and select `package.json`. In this development project the package is embedded under `Packages/com.oreethehat.easy-combat`.
 
-For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.6.0`. Pin a release tag for production. The `main` branch tracks ongoing development.
+For a Git installation, use **Add package from git URL** with `https://github.com/orEEtheHAT/EasyCombat.git#v0.7.0`. Pin a release tag for production. The `main` branch tracks ongoing development.
 
 Import **Attack Gallery** for ten editable attack recipes. Open `AttackGallery_Sample.unity`, enter Play mode, choose a recipe and click **Attack**. [Recipe list and usage](Samples~/AttackGallery/README.md)
 
@@ -86,3 +86,18 @@ The pre-existing Games Factory sandbox stays in the development project, outside
 ## License
 
 MIT, matching Easy Feedbacks. Copyright 2026 orEEtheHAT. See [LICENSE.md](LICENSE.md).
+
+## Sample compatibility
+
+The samples shipped with this release require EasyCombat **0.7.0+**. Core installation remains independent of other Easy packages. Install only the dependencies for the sample you need, then import it once from Package Manager. The table gives the supported minimum versions for this adapter generation; older snapshots may lack its public APIs. Unity dependencies declared in package.json are installed automatically.
+
+| Sample | Additional requirements | Import first |
+|---|---|---|
+| Basic Arena | None | — |
+| Combat Lab | None | — |
+| Attack Gallery | None | — |
+| Easy Feedbacks Adapter | EasyFeedbacks 1.8.0+ | — |
+| EasyMovement Adapter | EasyMovement 5.1.0+, ECM2 (separate installation; tested with 1.4.3) | — |
+| EasyResources Adapter | EasyResources 0.3.0+ | — |
+
+Keep one copy of each sample assembly. Existing imports may remain in their current Assets folder; review and merge updates before reimporting so local edits and asset/action GUIDs are preserved.

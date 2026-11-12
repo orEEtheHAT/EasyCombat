@@ -17,6 +17,8 @@ namespace EasyCombat.Integrations
             [Min(0),Tooltip("Per binding, across all actors. Independent of number coalescing.")] public float MinimumInterval;
             [Min(0),Tooltip("Zero uses intensity 1; otherwise amount / reference, clamped to 0.1–3.")] public float ReferenceAmount;
         }
+        [Tooltip("Optional player context provider. Must implement IFeedbackContextProvider.")]
+        public MonoBehaviour ContextProvider;
         public CombatPresentationHub Hub;
         public Binding[] Bindings=Array.Empty<Binding>();
         private Binding[] captured=Array.Empty<Binding>();
@@ -50,8 +52,15 @@ namespace EasyCombat.Integrations
                 if(float.IsNaN(intensity)) intensity=1;
                 var rotation=value.Direction.sqrMagnitude>.000001f ? Quaternion.LookRotation(value.Direction) : Quaternion.identity;
                 // Cached world point; never follow a pooled actor after it has become another life.
-                FeedbackService.Play(entry.Preset,new FeedbackContext(value.Position,rotation,null,null,intensity));
+                var context=new FeedbackContext(value.Position,rotation,null,null,intensity);
+                if(ContextProvider!=null && ContextProvider is IFeedbackContextProvider provider) context=provider.Prepare(context);
+                FeedbackService.Play(entry.Preset,context);
             }
+        }
+        private void OnValidate()
+        {
+            if(ContextProvider!=null && !(ContextProvider is IFeedbackContextProvider))
+                Debug.LogWarning("Presentation Feedbacks: Context Provider must implement IFeedbackContextProvider. Assign a player context adapter or leave it empty.",this);
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void BeginSession()

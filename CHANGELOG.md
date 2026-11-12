@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — 2026-11-12
+
+- Added an optional `CombatCostProvider`/`CombatCostTransaction` hook for abilities, beam pulses and paid block layers. No provider preserves CombatResources behavior; a present invalid/disabled provider rejects payment rather than falling back to another balance.
+- Added the optional EasyResources adapter with exact whole-unit to fixed-point conversion, atomic reservations, nested synchronous payment scopes and coherent deferred notifications. Windup/cancellation remains unpaid; irreversible execution retains its admitted cost even if delivery later fails.
+- Outstanding payments remain bound to their original wallet generation across provider disable, destruction and rebinding; restored/destroyed stores cannot be charged by stale handles.
+- Added optional player-aware context providers to health/presentation feedback and documented storage-independent combined snapshots. Core gains no mandatory Easy-package dependency.
+
 ## 0.6.0 — 2026-11-10
 
 - Added the optional Attack Gallery sample with a playable range and ten named attack presets, including a swept sword and an explosive fireball that leaves burning ground.

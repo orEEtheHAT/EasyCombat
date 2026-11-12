@@ -1,5 +1,7 @@
 # Attack Gallery
 
+**Compatibility:** EasyCombat 0.7.0+. No prerequisite sample imports.
+
 Import **Attack Gallery** from EasyCombat's **Samples** tab. Open `AttackGallery_Sample.unity`, press Play, select an example and press **Attack**. All ten recipes are ready to edit in `Attacks/`. Choosing another example or pressing **Reset targets** clears projectiles, fields and statuses and restores the dummies.
 
 | Recipe | What to try |

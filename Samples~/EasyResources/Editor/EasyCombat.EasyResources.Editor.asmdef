@@ -1,0 +1,29 @@
+{
+  "name": "EasyCombat.EasyResources.Editor",
+  "rootNamespace": "EasyCombat.Integrations.Editor",
+  "references": [
+    "EasyCombat.Runtime",
+    "EasyCombat.EasyResources",
+    "EasyResources.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true,
+  "versionDefines": [
+    {
+      "name": "com.oreethehat.easy-combat",
+      "expression": "0.7.0",
+      "define": "EASY_WAVE1_COMBAT"
+    },
+    {
+      "name": "com.oreethehat.easy-resources",
+      "expression": "0.3.0",
+      "define": "EASY_WAVE1_RESOURCES"
+    }
+  ],
+  "defineConstraints": [
+    "EASY_WAVE1_COMBAT",
+    "EASY_WAVE1_RESOURCES"
+  ]
+}
